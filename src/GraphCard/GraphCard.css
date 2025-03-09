@@ -1,0 +1,17 @@
+.graph-card{
+    background-color: #202020;
+    color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-left: 10rem;
+    margin-right: 10rem;
+    margin-bottom: 5rem;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 1);
+}
+
+.graph-card h2{
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}

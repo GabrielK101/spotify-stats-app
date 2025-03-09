@@ -1,0 +1,27 @@
+.login-btn {
+  position: relative;
+  bottom: 0.2rem;
+  background-color: white;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-btn:hover {
+  background-color: #c4c4c4;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: #1a1a1ae8 2px solid;
+  box-shadow: #000000 0 0 10px;
+}
+  
