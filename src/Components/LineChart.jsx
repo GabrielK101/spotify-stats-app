@@ -10,8 +10,8 @@ const LineChart = ({ chartData }) => {
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         datasets: [
             {
-                label: "Loading...",
-                data: [0, 0, 0, 0, 0, 0, 0],
+                label: "No data",
+                data: [],
                 fill: false,
                 borderColor: "rgb(255, 255, 255)",
                 tension: 0.3,

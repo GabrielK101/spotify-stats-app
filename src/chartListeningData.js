@@ -39,16 +39,36 @@ export function chartListeningData(rawData) {
         }
     });
 
-    // Convert into arrays for Chart.js
+    // Get the current day of the week (0=Sun, 1=Mon,...,6=Sat)
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+
+    // Modify data to show current day and null for future days, but keep all labels
+    const truncatedData = daysOfWeek.map((_, i) => {
+        const dateStr = Object.keys(minutesListened)[i];
+        if (i < currentDayOfWeek) {
+            return minutesListened[dateStr] || 0; // Data for completed days
+        } else if (i === currentDayOfWeek) {
+            return minutesListened[dateStr] || null; // Data for today (can show actual data or pause with null)
+        } else {
+            return null; // Future days should have no data
+        }
+    });
+
     return {
-        labels: daysOfWeek, // Mon-Sun fixed labels
+        labels: daysOfWeek, // Keep all labels (Mon-Sun)
         datasets: [
             {
                 label: "Minutes Listened",
-                data: daysOfWeek.map((_, i) => minutesListened[Object.keys(minutesListened)[i]] || 0),
+                data: truncatedData,
                 fill: false,
                 borderColor: "rgb(79, 176, 122)",
                 tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: "white",
+                pointBorderWidth: 2,
+                pointBorderColor: "rgb(79, 176, 122)",
             },
         ],
     };

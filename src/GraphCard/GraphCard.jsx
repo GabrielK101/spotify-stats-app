@@ -21,7 +21,7 @@ function GraphCard({ title, userId }) {
     return (
         <div className="graph-card">
             <h2>{title}</h2>
-            {chartData ? <LineChart chartData={chartData} /> : <p>Loading...</p>}
+            {chartData ? <LineChart chartData={chartData} /> : <LineChart />}
         </div>
     );
 }
