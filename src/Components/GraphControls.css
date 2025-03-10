@@ -24,4 +24,8 @@
 .graph-controls span{
     padding: 0rem 1rem;
     margin-top: 0.2rem;
+    cursor: pointer;
+}
+.graph-controls span:hover{
+    color: #606060;
 }

@@ -1,7 +1,7 @@
 import './GraphControls.css';
 import React, { useState } from 'react';
 
-function GraphControls({ setDateRange }) {
+function GraphControls({ setDateRange, earliestDate }) {
     const [date, setDate] = useState(new Date());
 
     function formatWeekRange(date) {
@@ -30,8 +30,31 @@ function GraphControls({ setDateRange }) {
         return `${formatDate(startDate)} - ${formatDate(endDate)}`;
     }
     
+    const resetToCurrentWeek = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to midnight
 
-    const changeWeek = (weeks) => {
+        // Calculate Monday of the current week
+        const currentMonday = new Date(today);
+        currentMonday.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1)); // Adjust to Monday
+
+        // Calculate Sunday of the current week
+        const currentSunday = new Date(currentMonday);
+        currentSunday.setDate(currentMonday.getDate() + 6); // Sunday is 6 days after Monday
+
+        // Convert dates to YYYY-MM-DD strings
+        const formatDate = (date) => date.toISOString().split("T")[0];
+        const startDateStr = formatDate(currentMonday);
+        const endDateStr = formatDate(currentSunday);
+
+        // Update dateRange with current week
+        setDateRange({ startDate: startDateStr, endDate: endDateStr });
+
+        // Update the displayed date
+        setDate(currentMonday);
+    };
+
+    const changeWeek = (weeks, earliestDate) => {
         setDate(prevDate => {
             const newStartDate = new Date(prevDate);
     
@@ -67,6 +90,24 @@ function GraphControls({ setDateRange }) {
                 setDateRange({ startDate: startDateStr, endDate: endDateStr });
                 return currentMonday; // Return current Monday to update the state
             }
+
+            // If newStartDate is earlier than the earliest date, reset to the earliest week
+            if (earliestDate && newStartDate < new Date(earliestDate)) {
+                const earliestMonday = new Date(earliestDate);
+                earliestMonday.setDate(earliestMonday.getDate() - (earliestMonday.getDay() === 0 ? 6 : earliestMonday.getDay() - 1)); // Calculate Monday of the earliest week
+                const earliestSunday = new Date(earliestMonday);
+                earliestSunday.setDate(earliestMonday.getDate() + 6); // Calculate Sunday of the earliest week
+          
+                // Convert dates to YYYY-MM-DD strings
+                const formatDate = (date) => date.toISOString().split("T")[0];
+                const startDateStr = formatDate(earliestMonday);
+                const endDateStr = formatDate(earliestSunday);
+          
+                // Update dateRange with earliest week
+                setDateRange({ startDate: startDateStr, endDate: endDateStr });
+                return earliestMonday; // Return earliest Monday to update the state
+            }
+
     
             // Convert dates to YYYY-MM-DD strings
             const formatDate = (date) => date.toISOString().split("T")[0];
@@ -81,9 +122,9 @@ function GraphControls({ setDateRange }) {
     
     return (
         <div className="graph-controls">
-                <button onClick={() => changeWeek(-1)}>&lt;</button>
-                <span>{formatWeekRange(date)}</span>
-                <button onClick={() => changeWeek(+1)}>&gt;</button>
+                <button onClick={() => changeWeek(-1, earliestDate)}>&lt;</button>
+                <span onClick={resetToCurrentWeek}>{formatWeekRange(date)}</span>
+                <button onClick={() => changeWeek(+1, earliestDate)}>&gt;</button>
         </div>
     );
 }
