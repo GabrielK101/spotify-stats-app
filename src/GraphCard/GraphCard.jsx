@@ -29,7 +29,7 @@ function GraphCard({ title, userId }) {
   useEffect(() => {
     async function fetchEarliestDate() {
       const earliest = await getEarliestDate(userId);
-      console.log("Earliest date:", earliest);
+      //console.log("Earliest date:", earliest);
       setEarliestDate(earliest);
     }
     fetchEarliestDate();
