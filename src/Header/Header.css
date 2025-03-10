@@ -30,3 +30,35 @@ a:hover{
     border: #1a1a1ae8 2px solid;
     box-shadow: #000000 0 0 10px;
 }
+
+.profilePicture:hover{
+    cursor: pointer;
+    box-shadow: #6b6b6b 0 0 10px;
+}
+
+.dropdown {
+position: relative;
+display: inline-block;
+}
+
+.dropdownMenu {
+position: absolute;
+top: 100%;
+right: 0;
+background-color: #000000a7;
+padding: 10px;
+border-radius: 5px;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.dropdownMenu button {
+background: none;
+border: none;
+color: #ffffff;
+cursor: pointer;
+}
+
+.dropdownMenu button:hover {
+color: #a5a5a5;
+}
+  
