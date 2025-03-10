@@ -1,4 +1,4 @@
-import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
+import { collection, query, getDocs, orderBy, limit, where } from "firebase/firestore";
 import { db } from "./firebase";
 
 export async function getListeningData(userId, startDate = null, endDate = null) {
@@ -36,6 +36,33 @@ export async function getListeningData(userId, startDate = null, endDate = null)
   });
 
   return { rawData, earliestDate }; // Return raw data and earliest date
+}
+
+export async function getListeningDataForDay(userId, date) {
+    if (!userId || !date) {
+      console.error("No userId or date provided");
+      return []; // Consistent return type
+    }
+
+    // Query listening history for the specific day
+    const q = query(
+      collection(db, "users", userId, "listening_history"),
+      where("played_at", ">=", new Date(date)), // Start of the day
+      where("played_at", "<", new Date(new Date(date).setDate(new Date(date).getDate() + 1))) // End of the day
+    );
+
+    const querySnapshot = await getDocs(q);
+    const rawData = [];
+
+    querySnapshot.forEach((doc) => {
+      const { played_at, duration_ms } = doc.data();
+      const entryDate = new Date(played_at.seconds * 1000).toISOString().split("T")[0]; // YYYY-MM-DD
+
+      // Add entry to rawData
+      rawData.push({entryDate, duration_ms});
+    });
+
+    return rawData; // Consistent return type
 }
 
 export async function getEarliestDate(userId) {

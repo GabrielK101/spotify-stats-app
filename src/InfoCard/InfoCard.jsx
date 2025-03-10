@@ -1,6 +1,6 @@
 import './InfoCard.css';
 import { useEffect, useState } from "react";
-import { getListeningData } from "../getListeningData";
+import { getListeningDataForDay } from "../getListeningData";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -10,7 +10,7 @@ function InfoCard({ userId }) {
   useEffect(() => {
     async function fetchData() {
       if (userId) {
-        const data = await getListeningData(userId, today, today);
+        const data = await getListeningDataForDay(userId, today);
         const totalMinutes = data.reduce((sum, entry) => sum + entry.duration_ms / 60000, 0);
         const totalSongs = data.length;
         setStats({ minutes: Math.round(totalMinutes), songs: totalSongs });
