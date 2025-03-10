@@ -14,16 +14,14 @@ export async function getListeningData(userId, startDate = null, endDate = null)
 
   querySnapshot.forEach((doc) => {
     const { played_at, duration_ms } = doc.data();
-    const date = new Date(played_at.seconds * 1000).toISOString().split("T")[0]; // YYYY-MM-DD format
+    const date = new Date(played_at.seconds * 1000).toISOString().split("T")[0]; // YYYY-MM-DD
 
-    // If date filtering is applied, enforce it
+    // Compare strings if dates are provided
     if (startDate && endDate) {
-      // Ensure dates are in YYYY-MM-DD format for comparison
-      if (date < startDate || date > endDate) return;
+      if (date < startDate || date > endDate) return; // Skip if outside range
     }
 
     rawData.push({ date, duration_ms });
   });
-
   return rawData; // Return raw list of entries
 }

@@ -1,0 +1,27 @@
+.graph-controls{
+    display: flex;
+    justify-content: space-between;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+    max-width: fit-content;
+}
+
+.graph-controls button{
+    background-color: transparent;
+    color: rgb(255, 255, 255);
+    font-weight: 800;
+    font-size: larger;
+    border: none;
+    padding: 0rem 1rem;
+    cursor: pointer;
+}
+
+.graph-controls button:hover{
+    color: #606060;
+}
+
+.graph-controls span{
+    padding: 0rem 1rem;
+    margin-top: 0.2rem;
+}
