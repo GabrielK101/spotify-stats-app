@@ -4,6 +4,7 @@ import Header from './Header/Header.jsx';
 import GraphCard from './GraphCard/GraphCard.jsx';
 import InfoCard from './InfoCard/InfoCard.jsx';
 import Callback from './Callback.jsx';
+import AristGraph from './ArtistGraph/ArtistGraph.jsx';
 
 function App() {
   const [userId, setUserId] = useState(localStorage.getItem("userId") || null); // State to store userId
@@ -38,7 +39,8 @@ function App() {
           userId ? (
             <>
               <InfoCard userId={userId} />
-              <GraphCard title="Weekly Listening" userId={userId} />
+              <GraphCard title="Weekly Listening" userId={userId} dataType="weekly" />
+              <AristGraph userId={userId} />
             </>
           ) : (
             <Navigate to="/" />

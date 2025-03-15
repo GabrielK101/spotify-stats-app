@@ -14,14 +14,14 @@ export function getCurrentWeekRange() {
 }
 
 // Process Firestore data into a chart-friendly format
-export function chartListeningData(rawData, startDate, endDate) {
+export function chartListeningData(rawData, startDate, endDate, label = null) {
     if (!startDate || !endDate || isNaN(new Date(startDate).getTime())) {
         console.error("Invalid date range:", { startDate, endDate });
         return {
             labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
             datasets: [
                 {
-                    label: "Minutes Listened",
+                    label: label || "Minutes Listened",
                     data: Array(7).fill(0),
                     fill: false,
                     borderColor: "rgb(79, 176, 122)",
@@ -90,7 +90,7 @@ export function chartListeningData(rawData, startDate, endDate) {
         labels: daysOfWeek, // Keep all labels (Mon-Sun)
         datasets: [
             {
-                label: "Minutes Listened",
+                label: label || "Minutes Listened",
                 data: truncatedData,
                 fill: false,
                 borderColor: "rgb(79, 176, 122)",

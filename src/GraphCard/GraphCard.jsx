@@ -20,7 +20,7 @@ function getCurrentWeekRange() {
   };
 }
 
-function GraphCard({ title, userId }) {
+function GraphCard({ title, userId, dataType=null, artistId=null, artistName=null }) {
   const [chartData, setChartData] = useState(null);
   const [dateRange, setDateRange] = useState(getCurrentWeekRange()); // Initialize to current week
   const [earliestDate, setEarliestDate] = useState(null);
@@ -39,13 +39,20 @@ function GraphCard({ title, userId }) {
   useEffect(() => {
     async function fetchData() {
       if (userId) {
-        const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate);
-        const processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate);
-        setChartData(processedData);
+        if (dataType === "artist" && artistId) {
+          console.log("Fetching listening data for artist", artistId);
+          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, artistId);
+          const processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, artistName);
+          setChartData(processedData);
+        } else {
+          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate);
+          const processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate);
+          setChartData(processedData);
+        }
       }
     }
     fetchData();
-  }, [userId, dateRange]);
+  }, [userId, dateRange, dataType, artistId]);
 
   return (
     <div className="graph-card">
