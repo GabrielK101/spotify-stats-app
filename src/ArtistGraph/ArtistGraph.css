@@ -1,0 +1,78 @@
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .artist-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+    margin-top: 0;
+    width: 100%;
+  }
+  
+  .artist-container h3 {
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    color: #333;
+  }
+  
+  .artist-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    width: 100%;
+    max-width: 800px;
+  }
+  
+  .artist-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #202020;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s border 0.5s;
+  }
+  
+  .artist-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border: 2px solid #4fb07a;
+  }
+  
+  .remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    padding-bottom: 0.1rem;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+  
+  .remove-btn:hover {
+    background-color: #4fb07a;
+    transform: scale(1.1);
+  }
+  
+  .remove-btn:active {
+    transform: scale(0.95);
+  }

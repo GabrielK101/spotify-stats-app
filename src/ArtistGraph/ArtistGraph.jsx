@@ -1,31 +1,90 @@
+import './ArtistGraph.css';
 import GraphCard from "../GraphCard/GraphCard";
 import SearchBar from "../Components/SearchBar";
-import { getArtistID, getListeningData } from "../getListeningData";
+import { getArtistID } from "../getListeningData";
 import { useState, useEffect } from "react";
 
 function ArtistGraph({ userId }) {
-  const [artist, setArtist] = useState("");
-  const [artistId, setArtistId] = useState(null);
+  // State for the search input
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // State for multiple artists
+  const [artists, setArtists] = useState([]); // Array of artist names
+  const [artistIds, setArtistIds] = useState([]); // Array of artist IDs
 
-  // This will only run when artist is updated (on Enter press)
+  // This effect runs when searchQuery changes (when user presses Enter)
   useEffect(() => {
     async function fetchArtistData() {
-      if (artist) {
-        console.log("Fetching artist data for", artist);
-        const { artist_id: fetchedArtistId, artist: fetchedArtist } = await getArtistID(userId, artist);
-        console.log("Fetched Artist:", fetchedArtist);
-        console.log("Artist ID:", fetchedArtistId);
-        setArtistId(fetchedArtistId);
-        setArtist(fetchedArtist); // Update artist name with normalized version
+      if (searchQuery && searchQuery.trim()) {
+        console.log("Fetching artist data for", searchQuery);
+        
+        try {
+          const { artist_id: fetchedArtistId, artist: fetchedArtist } = await getArtistID(userId, searchQuery);
+          
+          console.log("Fetched Artist:", fetchedArtist);
+          console.log("Artist ID:", fetchedArtistId);
+          
+          // Only add the artist if it's not already in our list
+          if (fetchedArtistId && !artistIds.includes(fetchedArtistId)) {
+            setArtists(prevArtists => [...prevArtists, fetchedArtist]);
+            setArtistIds(prevIds => [...prevIds, fetchedArtistId]);
+            
+            // Clear search input after adding artist
+            setSearchQuery("");
+          } else {
+            console.log("Artist already in the list or not found");
+          }
+        } catch (error) {
+          console.error("Error fetching artist:", error);
+        }
       }
     }
+    
     fetchArtistData();
-  }, [artist]); // Depend on artist to fetch data on artist change
+  }, [searchQuery, userId, artistIds]); // Depend on searchQuery to fetch data when Enter is pressed
+
+  // Function to remove an artist from the list
+  const removeArtist = (index) => {
+    setArtists(prevArtists => prevArtists.filter((_, i) => i !== index));
+    setArtistIds(prevIds => prevIds.filter((_, i) => i !== index));
+  };
 
   return (
     <div>
-      <SearchBar searchQuery={artist} setSearchQuery={setArtist} />
-      {artistId && <GraphCard title="Compare Artists" userId={userId} dataType="artist" artistId={artistId} artistName={artist}/>}
+      <div className='search-container'>
+        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      </div>
+      
+      {/* Display selected artists */}
+      {artists.length > 0 && (
+        <div className="artist-container">
+          <h3>Selected Artists</h3>
+          <div className="artist-list">
+            {artists.map((artist, index) => (
+              <div key={artistIds[index]} className="artist-tag">
+                <span>{artist}</span>
+                <button 
+                  onClick={() => removeArtist(index)} 
+                  className="remove-btn"
+                  aria-label={`Remove ${artist}`}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Display graph if there are any artists */}
+      {artistIds.length > 0 && (
+        <GraphCard 
+          title="Artist Listening History" 
+          userId={userId} 
+          artistIds={artistIds} 
+          artistNames={artists}
+        />
+      )}
     </div>
   );
 }
