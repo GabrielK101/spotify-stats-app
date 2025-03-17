@@ -72,6 +72,11 @@ function ArtistGraph({ userId }) {
                 </button>
               </div>
             ))}
+            {artists.length > 0 
+              && <button onClick={() => { setArtistIds([]); setArtists([]);}} className="clear-btn">
+                Clear All
+              </button>
+            }
           </div>
         </div>
       )}

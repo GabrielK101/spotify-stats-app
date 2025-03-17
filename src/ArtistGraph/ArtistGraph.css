@@ -6,33 +6,33 @@
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
-  }
-  
-  .artist-container {
+}
+
+.artist-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin: 20px 0;
     margin-top: 0;
     width: 100%;
-  }
-  
-  .artist-container h3 {
+}
+
+.artist-container h3 {
     margin-bottom: 12px;
     font-size: 1.1rem;
     color: #333;
-  }
-  
-  .artist-list {
+}
+
+.artist-list {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     justify-content: center;
     width: 100%;
     max-width: 800px;
-  }
-  
-  .artist-tag {
+}
+
+.artist-tag {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -42,16 +42,18 @@
     border-radius: 9999px;
     font-size: 0.9rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid transparent;
     transition: transform 0.2s, box-shadow 0.2s border 0.5s;
-  }
-  
-  .artist-tag:hover {
-    transform: translateY(-2px);
+}
+
+.artist-tag:hover {
+    transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     border: 2px solid #4fb07a;
-  }
-  
-  .remove-btn {
+    font-weight: bolder;
+}
+
+.remove-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -66,13 +68,24 @@
     font-size: 0.8rem;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.2s;
-  }
-  
-  .remove-btn:hover {
+}
+
+.remove-btn:hover {
     background-color: #4fb07a;
+    font-weight: bolder;
     transform: scale(1.1);
-  }
-  
-  .remove-btn:active {
+}
+
+.remove-btn:active {
     transform: scale(0.95);
-  }
+}
+
+.clear-btn{
+    background-color: #202020;
+    color: #ffffff;
+    transition: 0.2s;
+} .clear-btn:hover {
+    background-color: #b30000;
+    border: 2px solid #D0021B;
+    font-weight: bolder;
+}
