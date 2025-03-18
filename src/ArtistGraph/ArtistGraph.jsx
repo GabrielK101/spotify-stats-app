@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 function ArtistGraph({ userId }) {
   // State for the search input
   const [searchQuery, setSearchQuery] = useState("");
-  
+  const [graphKey, setGraphKey] = useState(0); // Key to force re-render of GraphCard
   // State for multiple artists
   const [artists, setArtists] = useState([]); // Array of artist names
   const [artistIds, setArtistIds] = useState([]); // Array of artist IDs
@@ -49,10 +49,17 @@ function ArtistGraph({ userId }) {
     setArtistIds(prevIds => prevIds.filter((_, i) => i !== index));
   };
 
+  // Function to clear all artists and reset graph
+  const clearAllArtists = () => {
+    setArtistIds([]);
+    setArtists([]);
+    setGraphKey(prevKey => prevKey + 1); // Change key to force re-render
+  };
+
   return (
     <div>
       <div className='search-container'>
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} userId={userId} />
       </div>
       
       {/* Display selected artists */}
@@ -73,22 +80,25 @@ function ArtistGraph({ userId }) {
               </div>
             ))}
             {artists.length > 0 
-              && <button onClick={() => { setArtistIds([]); setArtists([]);}} className="clear-btn">
-                Clear All
-              </button>
+              && <button onClick={clearAllArtists} className="clear-btn">
+              Clear All
+            </button>
             }
           </div>
         </div>
       )}
       
       {/* Display graph if there are any artists */}
-      {artistIds.length > 0 && (
-        <GraphCard 
-          title="Artist Listening History" 
-          userId={userId} 
-          artistIds={artistIds} 
-          artistNames={artists}
-        />
+      {artistIds.length > 0 ? (
+      <GraphCard 
+        key={graphKey} // Force re-render when cleared
+        title="Artist Listening History" 
+        userId={userId} 
+        artistIds={artistIds} 
+        artistNames={artists}
+      />
+      ) : (
+      <GraphCard title="Artist Listening History"/>
       )}
     </div>
   );

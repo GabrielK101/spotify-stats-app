@@ -165,3 +165,66 @@ export async function getArtistID(userId, artistName) {
     return null;
   }
 }
+
+/**
+ * Get artist suggestions from a user's listening history
+ * @param {string} userId - The user ID
+ * @param {string} [searchQuery=""] - Optional search query to filter artists
+ * @param {number} [maxResults=10] - Maximum number of results to return
+ * @returns {Promise<Array<{artist_id: string, artist: string}>>} Array of matching artists
+ */
+export async function getArtistSuggestions(userId, searchQuery = "", maxResults = 10) {
+  if (!userId) {
+    console.error("No userId provided");
+    return [];
+  }
+
+  try {
+    // Query all listening history for the user
+    const q = query(collection(db, "users", userId, "listening_history"));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) {
+      console.log("No listening history found.");
+      return [];
+    }
+
+    // Use a Map to track unique artists to avoid duplicates
+    const artistsMap = new Map();
+    const normalizedSearch = normalizeText(searchQuery);
+    
+    // Process all documents
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (!data.artist || !data.artist_id) return; // Skip if missing artist or artist_id
+      
+      // If we already have this artist, skip
+      if (artistsMap.has(data.artist_id)) return;
+      
+      // If search query provided, filter by it
+      if (normalizedSearch) {
+        const normalizedArtist = normalizeText(data.artist);
+        // Check if artist name contains the search query
+        if (!normalizedArtist.includes(normalizedSearch)) return;
+      }
+      
+      // Add to our Map
+      artistsMap.set(data.artist_id, {
+        artist_id: data.artist_id,
+        artist: data.artist
+      });
+    });
+    
+    // Convert Map values to array and limit results
+    const results = Array.from(artistsMap.values())
+      // Sort alphabetically by artist name
+      .sort((a, b) => a.artist.localeCompare(b.artist))
+      // Limit to maxResults
+      .slice(0, maxResults);
+    
+    return results;
+  } catch (error) {
+    console.error("Error fetching artist suggestions:", error);
+    return [];
+  }
+}

@@ -37,7 +37,7 @@ function GraphCard({ title, userId, dataType=null, artistId=null, artistName=nul
   // Fetch listening data when userId, dateRange, or artist info changes
   useEffect(() => {
     async function fetchData() {
-      if (!userId) return;
+      if (!userId) return(<LineChart />);
 
       // Case 1: Multiple artists (using artistIds array)
       if (artistIds && artistIds.length > 0) {
