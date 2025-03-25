@@ -1,0 +1,8 @@
+.info-container {
+    display: flex;
+    justify-content: center;  /* Center them in the container */
+    gap: 4rem;  /* Reduce the gap between cards */
+    flex-wrap: wrap;  /* Allow them to wrap */
+    max-width: 100rem;  /* Adjust based on your layout */
+    margin: auto;
+}

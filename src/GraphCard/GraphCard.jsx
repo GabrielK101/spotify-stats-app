@@ -20,7 +20,7 @@ function getCurrentWeekRange() {
   };
 }
 
-function GraphCard({ title, userId, dataType=null, artistId=null, artistName=null, artistIds=[], artistNames=[] }) {
+function GraphCard({ title, userId, dataType=null, artistId=null, artistName=null, artistIds=[], artistNames=[], pointImage=null }) {
   const [chartData, setChartData] = useState(null);
   const [dateRange, setDateRange] = useState(getCurrentWeekRange()); // Initialize to current week
   const [earliestDate, setEarliestDate] = useState(null);
@@ -87,7 +87,7 @@ function GraphCard({ title, userId, dataType=null, artistId=null, artistName=nul
       // Case 3: Default total listening data
       else {
         const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate);
-        const processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate);
+        const processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, "Minutes Listened", pointImage);
         setChartData(processedData);
       }
     }

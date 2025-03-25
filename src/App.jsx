@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Header from './Header/Header.jsx';
-import GraphCard from './GraphCard/GraphCard.jsx';
-import InfoCard from './InfoCard/InfoCard.jsx';
-import Callback from './Callback.jsx';
-import AristGraph from './ArtistGraph/ArtistGraph.jsx';
+import Header from "./Header/Header";
+import Callback from "./Callback";
+import Dashboard from "./Screens/Dashboard";
 
 function App() {
   const [userId, setUserId] = useState(localStorage.getItem("userId") || null); // State to store userId
+  const [user, setUser] = useState(null); // State to store user data
 
   // Check localStorage for userId on app load
   useEffect(() => {
@@ -19,7 +18,7 @@ function App() {
 
   return (
     <>
-    <Header userId={userId} setUserId={setUserId} /> {/* Pass setUserId here */}
+    <Header userId={userId} setUserId={setUserId} setUser={setUser} /> {/* Pass setUserId here */}
     <Routes>
       <Route
         path="/"
@@ -37,17 +36,13 @@ function App() {
         path="/dashboard"
         element={
           userId ? (
-            <>
-              <InfoCard userId={userId} />
-              <GraphCard title="Weekly Listening" userId={userId} dataType="weekly" />
-              <AristGraph userId={userId} />
-            </>
+            <Dashboard userId={userId} user={user} />
           ) : (
             <Navigate to="/" />
           )
         }
       />
-      <Route path="/callback" element={<Callback setUserId={setUserId} />} />
+      <Route path="/callback" element={<Callback setUserId={setUserId} setUser={setUser} />} />
     </Routes>
     </>
   );

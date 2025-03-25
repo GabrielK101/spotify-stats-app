@@ -4,8 +4,8 @@ import { Link } from "react-router-dom"; // If using React Router
 import getUserData from "../getUserData";
 import LoginButton from "../Components/LoginButton";
 
-const Header = ({ userId, setUserId }) => {
-  const [user, setUser] = useState(null);
+const Header = ({ userId, setUserId, setUser }) => {
+  const [user, setUserData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Fetch user data when userId changes
@@ -13,7 +13,8 @@ const Header = ({ userId, setUserId }) => {
     const fetchUser = async () => {
       if (userId) {
         const userData = await getUserData(userId);
-        setUser(userData);
+        setUserData(userData);
+        setUser(userData); // Update user in parent component (App.js)
       } else {
         setUser(null); // Reset user when logging out
       }

@@ -31,16 +31,16 @@ export function chartListeningData(rawData, startDate, endDate, label = null) {
                     pointBackgroundColor: "white",
                     pointBorderWidth: 2,
                     pointBorderColor: "rgb(79, 176, 122)",
+                    pointStyle: Array(7).fill(null),
                 },
             ],
         };
     }
-    // Initialize structure for the selected week (Mon-Sun)
+    
     const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const minutesListened = {};
     const songsPlayed = {};
 
-    // Pre-fill days based on selected date range
     let currentDay = new Date(startDate);
     for (let i = 0; i < 7; i++) {
         const dateStr = currentDay.toISOString().split("T")[0];
@@ -49,39 +49,28 @@ export function chartListeningData(rawData, startDate, endDate, label = null) {
         currentDay.setDate(currentDay.getDate() + 1);
     }
 
-    // Process raw data
     rawData.forEach(({ date, duration_ms }) => {
         if (minutesListened.hasOwnProperty(date)) {
-            minutesListened[date] += duration_ms / 60000; // Convert ms to minutes
-            songsPlayed[date] += 1; // Count songs
+            minutesListened[date] += duration_ms / 60000;
+            songsPlayed[date] += 1;
         }
     });
 
-    // Get today's date in YYYY-MM-DD format
     const todayStr = new Date().toISOString().split("T")[0];
+    const isCurrentWeek = (startDate <= todayStr && todayStr <= endDate);
 
-    // Check if the selected week is the current week
-    const isCurrentWeek = (
-        startDate <= todayStr &&
-        todayStr <= endDate
-    );
-
-    // Modify data to show current day and null for future days, but keep all labels
     const truncatedData = daysOfWeek.map((_, i) => {
         const dateStr = Object.keys(minutesListened)[i];
-
-        // Only truncate if it's the current week
         if (isCurrentWeek) {
-            const currentDayOfWeek = new Date().getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+            const currentDayOfWeek = new Date().getDay();
             if (i < currentDayOfWeek) {
-                return minutesListened[dateStr] || 0; // Data for completed days
+                return minutesListened[dateStr] || 0;
             } else if (i === currentDayOfWeek) {
-                return minutesListened[dateStr] || null; // Data for today (can show actual data or pause with null)
+                return minutesListened[dateStr] || null;
             } else {
-                return null; // Future days should have no data
+                return null;
             }
         } else {
-            // For historical weeks, show full data
             return minutesListened[dateStr] || 0;
         }
     });
@@ -104,3 +93,4 @@ export function chartListeningData(rawData, startDate, endDate, label = null) {
         ],
     };
 }
+

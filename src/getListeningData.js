@@ -52,30 +52,81 @@ export async function getListeningData(userId, startDate = null, endDate = null,
 }
 
 export async function getListeningDataForDay(userId, date) {
-    if (!userId || !date) {
-      console.error("No userId or date provided");
-      return []; // Consistent return type
-    }
+  if (!userId || !date) {
+    console.error("No userId or date provided");
+    return []; // Consistent return type
+  }
 
-    // Query listening history for the specific day
-    const q = query(
-      collection(db, "users", userId, "listening_history"),
-      where("played_at", ">=", new Date(date)), // Start of the day
-      where("played_at", "<", new Date(new Date(date).setDate(new Date(date).getDate() + 1))) // End of the day
-    );
+  // Query listening history for the specific day
+  const q = query(
+    collection(db, "users", userId, "listening_history"),
+    where("played_at", ">=", new Date(date)), // Start of the day
+    where("played_at", "<", new Date(new Date(date).setDate(new Date(date).getDate() + 1))) // End of the day
+  );
 
-    const querySnapshot = await getDocs(q);
-    const rawData = [];
+  const querySnapshot = await getDocs(q);
+  const rawData = [];
 
-    querySnapshot.forEach((doc) => {
-      const { played_at, duration_ms } = doc.data();
-      const entryDate = new Date(played_at.seconds * 1000).toISOString().split("T")[0]; // YYYY-MM-DD
+  querySnapshot.forEach((doc) => {
+    const { played_at, duration_ms, artist, artist_id, name, track_id } = doc.data();
+    const entryDate = new Date(played_at.seconds * 1000).toISOString().split("T")[0]; // YYYY-MM-DD
 
-      // Add entry to rawData
-      rawData.push({entryDate, duration_ms});
+    // Add entry to rawData
+    rawData.push({
+      date: entryDate,
+      duration: duration_ms,
+      artistName: artist,
+      artistId: artist_id,
+      songName: name,
+      songId: track_id
     });
+  });
 
-    return rawData; // Consistent return type
+  return rawData; // Consistent return type
+}
+
+
+export async function getListeningDataForWeek(userId, date) {
+  if (!userId || !date) {
+    console.error("No userId or date provided");
+    return [];
+  }
+
+  const inputDate = new Date(date);
+  const dayOfWeek = inputDate.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust for Sunday being 0
+  const weekStart = new Date(inputDate);
+  weekStart.setDate(inputDate.getDate() + mondayOffset);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 7); // Exclusive upper bound
+  weekEnd.setHours(0, 0, 0, 0);
+
+  const q = query(
+    collection(db, "users", userId, "listening_history"),
+    where("played_at", ">=", weekStart),
+    where("played_at", "<", weekEnd)
+  );
+
+  const querySnapshot = await getDocs(q);
+  const rawData = [];
+
+  querySnapshot.forEach((doc) => {
+    const { played_at, duration_ms, artist, artist_id, name, track_id, image } = doc.data();
+    const entryDate = new Date(played_at.seconds * 1000).toISOString().split("T")[0]; // YYYY-MM-DD
+    rawData.push({
+      date: entryDate,
+      duration: duration_ms,
+      artistName: artist,
+      artistId: artist_id,
+      image: image,
+      songName: name,
+      songId: track_id
+    });
+  });
+
+  return rawData;
 }
 
 export async function getEarliestDate(userId) {
