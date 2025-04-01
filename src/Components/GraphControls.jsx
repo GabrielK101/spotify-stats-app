@@ -65,53 +65,28 @@ function GraphControls({ dateRange, setDateRange, earliestDate }) {
   const changeWeek = (weeks) => {
     setDate(prevDate => {
       const newStartDate = new Date(prevDate);
-
-      // Calculate Monday of the week
+  
+      // Move backward/forward by weeks
+      newStartDate.setDate(newStartDate.getDate() + weeks * 7);
+  
+      // Calculate Monday of the new week
       const dayOfWeek = newStartDate.getDay();
       const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
       newStartDate.setDate(newStartDate.getDate() - daysToMonday);
-
-      // Move backward/forward by weeks
-      newStartDate.setDate(newStartDate.getDate() + weeks * 7);
-
+  
+      // Ensure newStartDate is not before earliestDate
+      if (earliestDate && newStartDate < new Date(earliestDate)) {
+        newStartDate.setDate(new Date(earliestDate).getDate());
+      }
+  
       // Calculate Sunday of the week
       const newEndDate = new Date(newStartDate);
       newEndDate.setDate(newStartDate.getDate() + 6);
-
-      // Get today's date (start of the day)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset time to midnight
-
-      // If newStartDate is in the future, reset to the current week
-      if (newStartDate > today) {
-        resetToCurrentWeek();
-        return today; // Return today to update the state
-      }
-
-      // If newStartDate is earlier than the earliest date, reset to the earliest week
-      if (earliestDate && newStartDate < new Date(earliestDate)) {
-        const earliestMonday = new Date(earliestDate);
-        earliestMonday.setDate(earliestMonday.getDate() - (earliestMonday.getDay() === 0 ? 6 : earliestMonday.getDay() - 1)); // Calculate Monday of the earliest week
-        const earliestSunday = new Date(earliestMonday);
-        earliestSunday.setDate(earliestMonday.getDate() + 6); // Calculate Sunday of the earliest week
-
-        // Convert dates to YYYY-MM-DD strings
-        const formatDate = (date) => date.toISOString().split("T")[0];
-        const startDateStr = formatDate(earliestMonday);
-        const endDateStr = formatDate(earliestSunday);
-
-        // Update dateRange with earliest week
-        setDateRange({ startDate: startDateStr, endDate: endDateStr });
-        return earliestMonday; // Return earliest Monday to update the state
-      }
-
+  
       // Convert dates to YYYY-MM-DD strings
       const formatDate = (date) => date.toISOString().split("T")[0];
-      const startDateStr = formatDate(newStartDate);
-      const endDateStr = formatDate(newEndDate);
-
-      // Update dateRange with strings
-      setDateRange({ startDate: startDateStr, endDate: endDateStr });
+      setDateRange({ startDate: formatDate(newStartDate), endDate: formatDate(newEndDate) });
+  
       return newStartDate;
     });
   };
