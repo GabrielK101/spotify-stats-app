@@ -9,31 +9,48 @@ function GraphControls({ dateRange, setDateRange, earliestDate }) {
     setDate(new Date(dateRange.startDate));
   }, [dateRange]);
 
+  // Helper function to get Monday of a week for a given date, using UTC to avoid DST issues
+  function getMondayForDate(inputDate) {
+    // Always work in UTC to avoid DST issues
+    const dateUTC = new Date(Date.UTC(
+      inputDate.getUTCFullYear(),
+      inputDate.getUTCMonth(),
+      inputDate.getUTCDate()
+    ));
+
+    const dayOfWeek = dateUTC.getUTCDay();
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    dateUTC.setUTCDate(dateUTC.getUTCDate() - daysToMonday);
+
+    return dateUTC; // Keep it in UTC
+  }
+  
   // Function to format the week range display
   function formatWeekRange(date) {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Ignore time for accurate comparisons
-
-    // Find the Monday of the current week
-    const startDate = new Date(date);
-    const dayOfWeek = startDate.getDay();
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust to Monday
-    startDate.setDate(startDate.getDate() - daysToMonday);
-
-    // Find the Sunday of the current week
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6); // Sunday is 6 days after Monday
-
-    // Check if the date is in the current week
-    if (startDate <= today && today <= endDate) {
+  
+    // Get Monday for the current date
+    const mondayDate = getMondayForDate(date);
+    console.log("Calculated Monday:", mondayDate); // Debugging log
+  
+    // Calculate Sunday (6 days after Monday)
+    const endDate = new Date(mondayDate);
+    endDate.setUTCDate(mondayDate.getUTCDate() + 6);
+    console.log("Calculated Sunday:", endDate); // Debugging log
+    
+    // Check if we're in the current week
+    const todayMonday = getMondayForDate(today);
+    if (mondayDate.getTime() === todayMonday.getTime()) {
       return "This Week";
     }
-
+  
     // Helper function to format date as "day month year"
-    const formatDate = (d) => `${d.getDate()} ${d.toLocaleString('default', { month: 'long' })} ${d.getFullYear()}`;
-
+    const formatDate = (d) => `${d.getUTCDate()} ${d.toLocaleString('default', { month: 'long' })} ${d.getUTCFullYear()}`;
+  
     // Return formatted range
-    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+    return `${formatDate(mondayDate)} - ${formatDate(endDate)}`;
   }
 
   // Function to reset to the current week
@@ -41,13 +58,13 @@ function GraphControls({ dateRange, setDateRange, earliestDate }) {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to midnight
 
-    // Calculate Monday of the current week
-    const currentMonday = new Date(today);
-    currentMonday.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1)); // Adjust to Monday
+    // Calculate Monday of the current week using our helper
+    const currentMonday = getMondayForDate(today);
+    console.log("Current Monday:", currentMonday);
 
     // Calculate Sunday of the current week
     const currentSunday = new Date(currentMonday);
-    currentSunday.setDate(currentMonday.getDate() + 6); // Sunday is 6 days after Monday
+    currentSunday.setUTCDate(currentMonday.getUTCDate() + 6);
 
     // Convert dates to YYYY-MM-DD strings
     const formatDate = (date) => date.toISOString().split("T")[0];
@@ -64,37 +81,65 @@ function GraphControls({ dateRange, setDateRange, earliestDate }) {
   // Function to change the week (backward or forward)
   const changeWeek = (weeks) => {
     setDate(prevDate => {
-      const newStartDate = new Date(prevDate);
-  
-      // Move backward/forward by weeks
-      newStartDate.setDate(newStartDate.getDate() + weeks * 7);
-  
-      // Calculate Monday of the new week
-      const dayOfWeek = newStartDate.getDay();
-      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-      newStartDate.setDate(newStartDate.getDate() - daysToMonday);
-  
-      // Ensure newStartDate is not before earliestDate
-      if (earliestDate && newStartDate < new Date(earliestDate)) {
-        newStartDate.setDate(new Date(earliestDate).getDate());
+      // Get the Monday of the current week for the selected date
+      const currentMonday = getMondayForDate(prevDate);
+      
+      // Create a new date by adding/subtracting weeks
+      const newMonday = new Date(Date.UTC(
+        currentMonday.getUTCFullYear(),
+        currentMonday.getUTCMonth(),
+        currentMonday.getUTCDate() + (weeks * 7)
+      ));
+      
+      // Check against the current week (based on today's date)
+      const todayMonday = getMondayForDate(new Date());
+      if (newMonday > todayMonday) {
+        // If trying to go into a future week, do nothing
+        return prevDate;
       }
-  
-      // Calculate Sunday of the week
-      const newEndDate = new Date(newStartDate);
-      newEndDate.setDate(newStartDate.getDate() + 6);
-  
+      
+      // Calculate Sunday of the new week
+      const newSunday = new Date(Date.UTC(
+        newMonday.getUTCFullYear(),
+        newMonday.getUTCMonth(),
+        newMonday.getUTCDate() + 6
+      ));
+
+      // If newMonday is earlier than the earliest date, reset to the earliest week
+      if (earliestDate && newMonday < new Date(earliestDate)) {
+        const earliestDate_obj = new Date(earliestDate);
+        const earliestMonday = getMondayForDate(earliestDate_obj);
+        const earliestSunday = new Date(Date.UTC(
+          earliestMonday.getUTCFullYear(),
+          earliestMonday.getUTCMonth(),
+          earliestMonday.getUTCDate() + 6
+        ));
+
+        // Convert dates to YYYY-MM-DD strings
+        const formatDate = (date) => date.toISOString().split("T")[0];
+        const startDateStr = formatDate(earliestMonday);
+        const endDateStr = formatDate(earliestSunday);
+
+        // Update dateRange with earliest week
+        setDateRange({ startDate: startDateStr, endDate: endDateStr });
+        return earliestMonday; // Return earliest Monday to update the state
+      }
+
       // Convert dates to YYYY-MM-DD strings
       const formatDate = (date) => date.toISOString().split("T")[0];
-      setDateRange({ startDate: formatDate(newStartDate), endDate: formatDate(newEndDate) });
-  
-      return newStartDate;
+      const startDateStr = formatDate(newMonday);
+      const endDateStr = formatDate(newSunday);
+
+      // Update dateRange with strings
+      setDateRange({ startDate: startDateStr, endDate: endDateStr });
+      return newMonday;
     });
   };
 
   return (
     <div className="graph-controls">
       <button onClick={() => changeWeek(-1)}>&lt;</button>
-      <span onClick={resetToCurrentWeek}>{formatWeekRange(date)}</span> {/* Make span clickable */}
+      <span onClick={resetToCurrentWeek} style={{ cursor: 'pointer' }}>{formatWeekRange(date)}</span>
       <button onClick={() => changeWeek(+1)}>&gt;</button>
     </div>
   );
