@@ -85,6 +85,7 @@ function InfoCard({ userId, title, dataType }) {
     <div className="info-card">
       <h2>{title}</h2>
         {dataType === "minutes" && (
+          <>
           <div className="stats-container">
             <div className="stat">
               <h3>Minutes</h3>
@@ -95,6 +96,24 @@ function InfoCard({ userId, title, dataType }) {
               <p>{dailyData.songs !== null ? dailyData.songs : "Loading..."}</p>
             </div>
           </div>
+          <h2>Top Artists</h2>
+          <div className="stats-container">
+            <div className="stat">
+              <h3>This Week</h3>
+              {weeklyData.artists ? (
+                <ol>
+                  {weeklyData.artists.map((artist, index) => (
+                    <li key={index}>
+                      {artist.artist} ({artist.count} plays)
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                "Loading..."
+              )}
+            </div>
+          </div>
+          </>
         )}
         {dataType === "songs" && (
           <div className="stats-container">
@@ -124,6 +143,7 @@ function InfoCard({ userId, title, dataType }) {
           </div>
         )}
         {dataType === "artists" && (
+          <>
           <div className="stats-container">
             <div className="stat">
               <h3>This Week</h3>
@@ -140,6 +160,17 @@ function InfoCard({ userId, title, dataType }) {
               )}
             </div>
           </div>
+          <div className="stats-container">
+            <div className="stat">
+              <h3>Minutes</h3>
+              <p>{dailyData.minutes !== null ? dailyData.minutes : "Loading..."}</p>
+            </div>
+            <div className="stat">
+              <h3>Songs Played</h3>
+              <p>{dailyData.songs !== null ? dailyData.songs : "Loading..."}</p>
+            </div>
+          </div>
+          </>
         )}
       </div>
   );

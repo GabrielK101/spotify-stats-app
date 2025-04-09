@@ -8,9 +8,8 @@ function Dashboard({ userId, user }){
     return (
         <>
             <div className="info-container">
-                <InfoCard userId={userId} title={"Today's Stats"} dataType={"minutes"} />
                 <InfoCard userId={userId} title={"Top Songs"} dataType={"songs"} />
-                <InfoCard userId={userId} title={"Top Artists"} dataType={"artists"} />
+                <InfoCard userId={userId} title={"Today's Stats"} dataType={"minutes"} />
             </div>
             <GraphCard title="Weekly Listening" userId={userId} dataType="weekly" pointImage={user && user.profile_pic_url} />
             <AristGraph userId={userId} />

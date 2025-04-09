@@ -145,4 +145,5 @@ function GraphControls({ dateRange, setDateRange, earliestDate }) {
   );
 }
 
-export default GraphControls;
+export default React.memo(GraphControls);
+//export default GraphControls;
