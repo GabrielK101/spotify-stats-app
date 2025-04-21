@@ -1,7 +1,7 @@
 header {
     display: flex;
     justify-content: flex-end;
-    align-items: center; /* Aligns items vertically */
+    align-items: center;
     padding: 0.5rem;
 }
 
@@ -61,4 +61,3 @@ cursor: pointer;
 .dropdownMenu button:hover {
 color: #a5a5a5;
 }
-  

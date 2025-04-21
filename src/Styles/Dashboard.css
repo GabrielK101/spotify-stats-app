@@ -1,8 +1,22 @@
 .info-container {
     display: flex;
     justify-content: center;  /* Center them in the container */
-    gap: 4rem;  /* Reduce the gap between cards */
+    gap: 2rem;  /* Slightly reduce the gap between cards */
     flex-wrap: wrap;  /* Allow them to wrap */
-    max-width: 500rem;  /* Adjust based on your layout */
-    margin: auto;
+    width: 90%;  /* Use percentage width instead of max-width */
+    max-width: 1000px;  /* Set a reasonable max-width */
+    margin: 0.5rem auto;  /* Add some top/bottom margin and center horizontally */
+}
+
+/* These style overrides ensure InfoCard components maintain consistent width */
+.info-container .info-card {
+    flex: 1 1 400px;  /* flex-grow, flex-shrink, flex-basis */
+    min-width: 300px;  /* Ensure minimum width for readability */
+    max-width: 550px;  /* Keep consistent with original max-width */
+    margin-bottom: 1rem;  /* Add space when cards stack on mobile */
+}
+
+/* Make sure any top-level components have padding for smaller screens */
+.dashboard-page .main-content {
+    padding: 0 1rem;
 }

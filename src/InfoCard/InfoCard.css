@@ -14,7 +14,7 @@
 .info-card {
     flex: 1;  /* Allow equal sizing */
     min-width: 150px;  /* Prevent shrinking too much */
-    max-width: 450px;  /* Keep a consistent card size */
+    max-width: 550px;  /* Keep a consistent card size */
     background-color: #202020;
     border-radius: 10px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 1);

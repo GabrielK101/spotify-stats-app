@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Header.css";
-import { Link } from "react-router-dom"; // If using React Router
-import getUserData from "../getUserData";
+import { Link } from "react-router-dom";
+import getUserData from "../getUserData"; // Updated import to match your actual implementation
 import LoginButton from "../Components/LoginButton";
 
 const Header = ({ userId, setUserId, setUser }) => {
@@ -12,15 +12,21 @@ const Header = ({ userId, setUserId, setUser }) => {
   useEffect(() => {
     const fetchUser = async () => {
       if (userId) {
-        const userData = await getUserData(userId);
-        setUserData(userData);
-        setUser(userData); // Update user in parent component (App.js)
+        try {
+          const userData = await getUserData(userId);
+          setUserData(userData);
+          setUser(userData); // Update user in parent component (App.js)
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
       } else {
+        setUserData(null);
         setUser(null); // Reset user when logging out
       }
     };
+    
     fetchUser();
-  }, [userId]); // Dependency on userId to refetch user data on logout
+  }, [userId, setUser]); // Add setUser as dependency
 
   const handleLogout = () => {
     localStorage.removeItem("userId"); // Clear userId from localStorage
@@ -44,8 +50,8 @@ const Header = ({ userId, setUserId, setUser }) => {
   return (
     <header>
       <nav>
-        <Link to="/">Dashboard</Link>
-        <Link to="/">Settings</Link>
+        <Link to="/dashboard">Dashboard</Link>
+        <Link to="/settings">Settings</Link>
 
         {user ? (
           <div className="dropdown">
@@ -57,6 +63,9 @@ const Header = ({ userId, setUserId, setUser }) => {
             />
             {isDropdownOpen && (
               <div className="dropdownMenu">
+                <Link to="/profile" onClick={() => setIsDropdownOpen(false)}>
+                  Profile
+                </Link>
                 <button onClick={handleLogout}>Logout</button>
               </div>
             )}
