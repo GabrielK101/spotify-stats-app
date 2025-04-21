@@ -1,7 +1,7 @@
 import './GraphCard.css';
 import LineChart from '../Components/LineChart';
 import GraphControls from '../Components/GraphControls';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getListeningData, getEarliestDate } from "../getListeningData";
 import { chartListeningData } from "../chartListeningData";
 
@@ -24,6 +24,9 @@ function GraphCard({ title, userId, dataType=null, artistId=null, artistName=nul
   const [chartData, setChartData] = useState(null);
   const [dateRange, setDateRange] = useState(getCurrentWeekRange()); // Initialize to current week
   const [earliestDate, setEarliestDate] = useState(null);
+  
+  // Use useRef to create a cache that persists between renders but doesn't trigger re-renders
+  const dataCache = useRef({});
 
   // Fetch the earliest date when the component mounts
   useEffect(() => {
@@ -36,64 +39,110 @@ function GraphCard({ title, userId, dataType=null, artistId=null, artistName=nul
 
   // Fetch listening data when userId, dateRange, or artist info changes
   useEffect(() => {
+    let isMounted = true; // For cleanup
+    
     async function fetchData() {
-      if (!userId) return(<LineChart />);
+      if (!userId) return;
 
-      // Case 1: Multiple artists (using artistIds array)
-      if (artistIds && artistIds.length > 0) {
-        console.log("Fetching data for multiple artists:", artistIds);
+      // Generate a cache key based on relevant parameters
+      const cacheKey = generateCacheKey(userId, dateRange, dataType, artistId, artistIds);
+      
+      // Check if we have cached data for this request
+      if (dataCache.current[cacheKey]) {
+        console.log("Using cached data for", dateRange);
+        setChartData(dataCache.current[cacheKey]);
+        return;
+      }
+      
+      // Show loading state
+      setChartData(null);
+      
+      try {
+        let processedData = null;
         
-        // Create a base chart structure with days of the week
-        const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-        const combinedData = {
-          labels: daysOfWeek,
-          datasets: []
-        };
+        // Case 1: Multiple artists (using artistIds array)
+        if (artistIds && artistIds.length > 0) {
+          console.log("Fetching data for multiple artists:", artistIds);
+          
+          // Create a base chart structure with days of the week
+          const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+          const combinedData = {
+            labels: daysOfWeek,
+            datasets: []
+          };
 
-        // Fetch data for each artist
-        for (let i = 0; i < artistIds.length; i++) {
-          const id = artistIds[i];
-          const name = artistNames[i] || `Artist ${i+1}`;
-          
-          console.log(`Fetching data for ${name} (${id})`);
-          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, id);
-          
-          // Process this artist's data
-          const artistData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, name);
-          
-          // We only need the first dataset from the processed data
-          if (artistData && artistData.datasets && artistData.datasets.length > 0) {
-            // Use a different color for each artist
-            const color = getRandomColor(i);
-            const dataset = {
-              ...artistData.datasets[0],
-              borderColor: color,
-              pointBorderColor: color
-            };
+          // Fetch data for each artist
+          for (let i = 0; i < artistIds.length; i++) {
+            const id = artistIds[i];
+            const name = artistNames[i] || `Artist ${i+1}`;
             
-            combinedData.datasets.push(dataset);
+            console.log(`Fetching data for ${name} (${id})`);
+            const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, id);
+            
+            // Process this artist's data
+            const artistData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, name);
+            
+            // We only need the first dataset from the processed data
+            if (artistData && artistData.datasets && artistData.datasets.length > 0) {
+              // Use a different color for each artist
+              const color = getRandomColor(i);
+              const dataset = {
+                ...artistData.datasets[0],
+                borderColor: color,
+                pointBorderColor: color
+              };
+              
+              combinedData.datasets.push(dataset);
+            }
           }
+          
+          processedData = combinedData;
+        }
+        // Case 2: Single artist (using artistId)
+        else if (dataType === "artist" && artistId) {
+          console.log("Fetching listening data for artist", artistId);
+          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, artistId);
+          processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, artistName);
+        }
+        // Case 3: Default total listening data
+        else {
+          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate);
+          processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, "Minutes Listened", pointImage);
         }
         
-        setChartData(combinedData);
-      }
-      // Case 2: Single artist (using artistId)
-      else if (dataType === "artist" && artistId) {
-        console.log("Fetching listening data for artist", artistId);
-        const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, artistId);
-        const processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, artistName);
-        setChartData(processedData);
-      }
-      // Case 3: Default total listening data
-      else {
-        const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate);
-        const processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, "Minutes Listened", pointImage);
-        setChartData(processedData);
+        if (isMounted) {
+          // Store in cache
+          dataCache.current[cacheKey] = processedData;
+          
+          // Update state
+          setChartData(processedData);
+        }
+      } catch (error) {
+        console.error("Error fetching chart data:", error);
+        if (isMounted) {
+          setChartData(null);
+        }
       }
     }
     
     fetchData();
-  }, [userId, dateRange, dataType, artistId, artistName, artistIds, artistNames]);
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, dateRange, dataType, artistId, artistName, JSON.stringify(artistIds), JSON.stringify(artistNames)]);
+
+  // Helper function to generate a cache key
+  function generateCacheKey(userId, dateRange, dataType, artistId, artistIds) {
+    if (artistIds && artistIds.length > 0) {
+      return `${userId}-${dateRange.startDate}-${dateRange.endDate}-multiple-${JSON.stringify(artistIds)}`;
+    } else if (dataType === "artist" && artistId) {
+      return `${userId}-${dateRange.startDate}-${dateRange.endDate}-artist-${artistId}`;
+    } else {
+      return `${userId}-${dateRange.startDate}-${dateRange.endDate}-weekly`;
+    }
+  }
 
   // Helper function to generate a random color
   function getRandomColor(index) {
@@ -123,7 +172,26 @@ function GraphCard({ title, userId, dataType=null, artistId=null, artistName=nul
     <div className="graph-card">
       <h2>{title}</h2>
       <GraphControls dateRange={dateRange} setDateRange={setDateRange} earliestDate={earliestDate} />
-      {chartData ? <LineChart chartData={chartData} /> : <LineChart />}
+      <div className="chart-container" style={{ position: 'relative' }}>
+        <LineChart chartData={chartData} />
+        {!chartData && (
+          <div className="chart-loading-overlay" style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            borderRadius: '4px',
+            zIndex: 1
+          }}>
+            <div style={{ color: '#666', fontWeight: 'bold' }}>Loading data...</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

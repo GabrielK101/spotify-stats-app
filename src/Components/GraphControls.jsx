@@ -1,8 +1,25 @@
 import './GraphControls.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+
+// Helper debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
 
 function GraphControls({ dateRange, setDateRange, earliestDate }) {
   const [date, setDate] = useState(new Date(dateRange.startDate)); // Initialize with dateRange.startDate
+
+  // Debounced version of setDateRange
+  const debouncedSetDateRange = useCallback(
+    debounce((newRange) => {
+      setDateRange(newRange);
+    }, 300),
+    [setDateRange]
+  );
 
   // Update internal date state when dateRange changes
   useEffect(() => {
@@ -72,7 +89,7 @@ function GraphControls({ dateRange, setDateRange, earliestDate }) {
     const endDateStr = formatDate(currentSunday);
 
     // Update dateRange with current week
-    setDateRange({ startDate: startDateStr, endDate: endDateStr });
+    debouncedSetDateRange({ startDate: startDateStr, endDate: endDateStr });
 
     // Update the displayed date
     setDate(currentMonday);
@@ -121,7 +138,7 @@ function GraphControls({ dateRange, setDateRange, earliestDate }) {
         const endDateStr = formatDate(earliestSunday);
 
         // Update dateRange with earliest week
-        setDateRange({ startDate: startDateStr, endDate: endDateStr });
+        debouncedSetDateRange({ startDate: startDateStr, endDate: endDateStr });
         return earliestMonday; // Return earliest Monday to update the state
       }
 
@@ -131,7 +148,7 @@ function GraphControls({ dateRange, setDateRange, earliestDate }) {
       const endDateStr = formatDate(newSunday);
 
       // Update dateRange with strings
-      setDateRange({ startDate: startDateStr, endDate: endDateStr });
+      debouncedSetDateRange({ startDate: startDateStr, endDate: endDateStr });
       return newMonday;
     });
   };
