@@ -279,3 +279,67 @@ export async function getArtistSuggestions(userId, searchQuery = "", maxResults 
     return [];
   }
 }
+
+/**
+ * Get album suggestions from a user's listening history
+ * @param {string} userId - The user ID
+ * @param {string} [searchQuery=""] - Optional search query to filter albums
+ * @param {number} [maxResults=10] - Maximum number of results to return
+ * @returns {Promise<Array<{album_id: string, album: string, artist: string, image: string}>>} Array of matching albums
+ */
+export async function getAlbumSuggestions(userId, searchQuery = "", maxResults = 10) {
+  if (!userId) {
+    console.error("No userId provided");
+    return [];
+  }
+
+  try {
+    // Query all listening history for the user
+    const q = query(collection(db, "users", userId, "listening_history"));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) {
+      console.log("No listening history found.");
+      return [];
+    }
+
+    // Use a Map to track unique albums to avoid duplicates
+    const albumsMap = new Map();
+    const normalizedSearch = normalizeText(searchQuery);
+    
+    // Process all documents
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (!data.album) return; // Skip if missing album or album_id
+      
+      // If we already have this album, skip
+      if (albumsMap.has(data.album)) return;
+      
+      // If search query provided, filter by it
+      if (normalizedSearch) {
+        const normalizedAlbum = normalizeText(data.album);
+        // Check if album name contains the search query
+        if (!normalizedAlbum.includes(normalizedSearch)) return;
+      }
+      
+      // Add to our Map
+      albumsMap.set(data.album_id, {
+        album: data.album,
+        artist: data.artist,
+        image: data.image
+      });
+    });
+    
+    // Convert Map values to array and limit results
+    const results = Array.from(albumsMap.values())
+      // Sort alphabetically by album name
+      .sort((a, b) => a.album.localeCompare(b.album))
+      // Limit to maxResults
+      .slice(0, maxResults);
+    
+    return results;
+  } catch (error) {
+    console.error("Error fetching album suggestions:", error);
+    return [];
+  }
+}

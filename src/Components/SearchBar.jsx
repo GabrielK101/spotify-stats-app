@@ -1,8 +1,8 @@
 import './SearchBar.css';
 import { useState, useEffect, useRef } from 'react';
-import { getArtistSuggestions } from '../getListeningData';
+import { getArtistSuggestions, getAlbumSuggestions } from '../getListeningData';
 
-function SearchBar({ searchQuery, setSearchQuery, userId }) {
+function SearchBar({ searchQuery, setSearchQuery, userId, searchType = "artist", onAlbumSelect = null }) {
     const [inputValue, setInputValue] = useState(searchQuery);
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -23,12 +23,17 @@ function SearchBar({ searchQuery, setSearchQuery, userId }) {
             }
 
             setIsLoading(true);
-            try{
-                const artistResults = await getArtistSuggestions(userId, inputValue, 10);
-                setSuggestions(artistResults);
-                setShowSuggestions(artistResults.length > 0);
+            try {
+                let results = [];
+                if (searchType === "artist") {
+                    results = await getArtistSuggestions(userId, inputValue, 10);
+                } else if (searchType === "album") {
+                    results = await getAlbumSuggestions(userId, inputValue, 10);
+                }
+                setSuggestions(results);
+                setShowSuggestions(results.length > 0);
             } catch (error) {
-                console.error("Error fetching suggestions:", error);
+                console.error(`Error fetching ${searchType} suggestions:`, error);
             } finally {
                 setIsLoading(false);
             }
@@ -40,7 +45,7 @@ function SearchBar({ searchQuery, setSearchQuery, userId }) {
         }, 300);
         
         return () => clearTimeout(timeoutId);
-    }, [inputValue, userId]);
+    }, [inputValue, userId, searchType]);
     
     // Close suggestions when clicking outside
     useEffect(() => {
@@ -53,8 +58,6 @@ function SearchBar({ searchQuery, setSearchQuery, userId }) {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-
     
     const handleInputChange = (event) => {
         setInputValue(event.target.value);  // Update local state only
@@ -67,8 +70,13 @@ function SearchBar({ searchQuery, setSearchQuery, userId }) {
     };
 
     const handleSuggestionClick = (suggestion) => {
-        setSearchQuery(suggestion.artist);
-        setInputValue(suggestion.artist);
+        if (searchType === "artist") {
+            setSearchQuery(suggestion.artist);
+            setInputValue(suggestion.artist);
+        } else if (searchType === "album" && onAlbumSelect) {
+            onAlbumSelect(suggestion);
+            setInputValue("");  // Clear the search bar after selection
+        }
         setShowSuggestions(false);
     };
   
@@ -79,7 +87,7 @@ function SearchBar({ searchQuery, setSearchQuery, userId }) {
                 value={inputValue} 
                 onChange={handleInputChange} 
                 onKeyDown={handleKeyDown} 
-                placeholder="Search for an artist..." 
+                placeholder={`Search for ${searchType === "artist" ? "an artist" : "an album"}...`} 
                 className="search-bar"
             />
             {isLoading && (
@@ -92,11 +100,14 @@ function SearchBar({ searchQuery, setSearchQuery, userId }) {
                 <ul className="suggestions-list">
                     {suggestions.map(suggestion => (
                         <li 
-                            key={suggestion.id}
+                            key={suggestion.id || suggestion.album_id}
                             onClick={() => handleSuggestionClick(suggestion)}
                             className="suggestion-item"
                         >
-                            {suggestion.artist}
+                            {searchType === "artist" ? suggestion.artist : suggestion.album}
+                            {searchType === "album" && suggestion.artist && (
+                                <span className="album-artist"> - {suggestion.artist}</span>
+                            )}
                         </li>
                     ))}
                 </ul>

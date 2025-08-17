@@ -1,109 +1,242 @@
 .profile-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 80vh;
   padding: 2rem;
-  /* Remove background properties from here as they'll be applied to the parent */
+  min-height: 80vh;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.profile-card {
-  background: linear-gradient(145deg, #1a1a1a, #212121);
-  border-radius: 12px;
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  background: linear-gradient(to bottom, rgba(30, 215, 96, 0.2), transparent);
+  border-radius: 1rem;
+  padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  padding: 2.5rem;
-  width: 100%;
-  max-width: 450px;
-  text-align: center;
+}
+
+.profile-image-container {
   position: relative;
-  overflow: hidden;
-}
-
-.profile-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, #1DB954, #1ED760);
-}
-
-.profile-pic {
-  width: 140px;
-  height: 140px;
+  width: 220px;  /* Make this equal to height for a perfect circle */
+  height: 180px;
   border-radius: 50%;
-  border: 4px solid #1DB954;
+  border: 3px solid #1DB954;
+  overflow: hidden;
   box-shadow: 0 0 20px rgba(30, 215, 96, 0.3);
-  margin-bottom: 1.5rem;
-  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.profile-card h2 {
-  color: #fff;
-  font-size: 1.8rem;
-  margin-bottom: 0.8rem;
+.profile-image-container:hover {
+  transform: scale(1.05);
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.profile-image-container:hover .profile-image {
+  transform: scale(1.1);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.profile-name {
+  font-size: 2.5rem;
   font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
   letter-spacing: 0.5px;
 }
 
-.profile-card p {
-  color: #b3b3b3;
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-top: 1rem;
-  max-width: 90%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Animation for a subtle pulse effect on the profile picture */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
-
-.profile-pic:hover {
-  animation: pulse 2s infinite ease-in-out;
-  box-shadow: 0 0 25px rgba(30, 215, 96, 0.5);
-}
-
-/* Additional metadata styling if you want to add more information later */
-.profile-metadata {
+.profile-member-info {
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.metadata-item {
-  text-align: center;
-}
-
-.metadata-item .value {
-  color: #1DB954;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.metadata-item .label {
+  align-items: center;
+  gap: 0.5rem;
   color: #b3b3b3;
-  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.spotify-text {
+  color: #1DB954;
+  font-weight: 500;
+}
+
+.separator {
+  color: #b3b3b3;
+}
+
+.profile-bio {
+  color: #b3b3b3;
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 0.5rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1DB954;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #b3b3b3;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .profile-card {
-    padding: 2rem 1.5rem;
+.profile-loading, .profile-error {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  color: white;
+}
+
+.profile-stats-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.stats-section {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stats-section h2 {
+  color: #1DB954;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.top-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.top-list-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.top-list-item:last-child {
+  border-bottom: none;
+}
+
+.artist-name {
+  color: #fff;
+  font-weight: 500;
+}
+
+.play-count {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.song-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.song-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.song-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.song-name {
+  color: #fff;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.song-artist {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.song-plays {
+  color: #1DB954;
+  font-size: 0.8rem;
+}
+
+.loading-text {
+  color: #b3b3b3;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* Media queries for responsive layout */
+@media (min-width: 768px) {
+  .profile-header {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    padding: 3rem;
+  }
+
+  .profile-info {
+    align-items: flex-start;
+    text-align: left;
   }
   
-  .profile-pic {
-    width: 120px;
-    height: 120px;
+  .profile-image-container {
+    width: 220px;
+    height: 180px;
+  }
+
+  .profile-stats-sections {
+    flex-direction: row;
   }
 }
