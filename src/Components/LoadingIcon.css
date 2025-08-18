@@ -1,0 +1,46 @@
+.loading-icon {
+    width: 120px;
+    height: 120px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(15px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(30, 215, 96, 0.4);
+    box-shadow:
+        0 0 30px rgba(30, 215, 96, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: spin 1s linear infinite;
+}
+
+.loading-icon {
+    /* Remove animation from the whole icon */
+    animation: none;
+    position: relative;
+}
+
+.loading-icon::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 2px solid rgba(30, 215, 96, 0.8);
+    border-radius: 50%;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    z-index: 1;
+    animation: spin 1s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-icon svg {
+    width: 60px;
+    height: 60px;
+    color: #1DB954;
+}

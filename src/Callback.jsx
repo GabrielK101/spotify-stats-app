@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LoadingIcon from "./Components/LoadingIcon";
 import getUserData from "./getUserData";
 
 const Callback = ({ setUserId }) => {
@@ -39,8 +40,8 @@ const Callback = ({ setUserId }) => {
   }, [navigate, setUserId, isProcessed]);
 
   return (
-    <div>
-      <p>Logging in...</p>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <LoadingIcon />
     </div>
   );
 };
