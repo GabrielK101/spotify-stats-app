@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Header.css";
-import { Link } from "react-router-dom";
-import getUserData from "../getUserData"; // Updated import to match your actual implementation
+import { Link, useNavigate } from "react-router-dom";
+import getUserData from "../getUserData";
 import LoginButton from "../Components/LoginButton";
 
 const Header = ({ userId, setUserId, setUser }) => {
   const [user, setUserData] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null); // Use ref for better click outside detection
+  const navigate = useNavigate();
 
   // Fetch user data when userId changes
   useEffect(() => {
@@ -15,36 +17,65 @@ const Header = ({ userId, setUserId, setUser }) => {
         try {
           const userData = await getUserData(userId);
           setUserData(userData);
-          setUser(userData); // Update user in parent component (App.js)
+          setUser(userData);
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
       } else {
         setUserData(null);
-        setUser(null); // Reset user when logging out
+        setUser(null);
       }
     };
     
     fetchUser();
-  }, [userId, setUser]); // Add setUser as dependency
+  }, [userId, setUser]);
 
   const handleLogout = () => {
-    localStorage.removeItem("userId"); // Clear userId from localStorage
-    setUserId(null); // Update state in parent component (App.js) to null
-    setIsDropdownOpen(false); // Close the dropdown menu if open
+    console.log("Logout button clicked");
+    localStorage.removeItem("userId");
+    setUserId(null);
+    setIsDropdownOpen(false);
+    navigate("/"); // Navigate to home page after logout
   };
 
-  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
-
-  const handleClickOutside = (e) => {
-    if (e.target.closest('.dropdown') === null) {
-      setIsDropdownOpen(false); // Close dropdown if clicked outside
-    }
+  const handleProfileClick = () => {
+    console.log("Profile button clicked");
+    navigate("/profile");
+    setIsDropdownOpen(false);
   };
 
+  const toggleDropdown = (e) => {
+    e.stopPropagation(); // Prevent event bubbling
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  // Improved click outside handler using ref
   useEffect(() => {
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  // Close dropdown on escape key
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
   return (
@@ -54,19 +85,37 @@ const Header = ({ userId, setUserId, setUser }) => {
         <Link to="/settings">Settings</Link>
 
         {user ? (
-          <div className="dropdown">
+          <div className="dropdown" ref={dropdownRef}>
             <img
               className="profilePicture"
               src={user.profile_pic_url}
               alt="Profile"
               onClick={toggleDropdown}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  toggleDropdown(e);
+                }
+              }}
             />
             {isDropdownOpen && (
               <div className="dropdownMenu">
-                <Link to="/profile" onClick={() => setIsDropdownOpen(false)}>
+                <button 
+                  onClick={handleProfileClick}
+                  className="dropdown-item"
+                  type="button"
+                >
                   Profile
-                </Link>
-                <button onClick={handleLogout}>Logout</button>
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  className="dropdown-item"
+                  type="button"
+                >
+                  Logout
+                </button>
               </div>
             )}
           </div>

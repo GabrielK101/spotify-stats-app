@@ -7,11 +7,6 @@ import '../Styles/Landing.css';
 const Landing = () => {
   return (
     <div className="landing">
-      {/* Background decoration */}
-      <div className="landing-background">
-        <div className="gradient-overlay"></div>
-      </div>
-      
       <div className="landing-container">
         <div className="landing-content">
           {/* Hero Section */}
