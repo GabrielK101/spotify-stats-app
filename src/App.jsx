@@ -4,6 +4,7 @@ import Header from "./Header/Header";
 import Callback from "./Callback";
 import Dashboard from "./Screens/Dashboard";
 import Profile from "./Screens/Profile";
+import Landing from "./Screens/Landing";
 import "./Styles/Layout.css"; // New layout styles
 
 function App() {
@@ -15,7 +16,8 @@ function App() {
   const getPageClass = () => {
     const path = location.pathname;
     if (path === "/profile") return "profile-page";
-    if (path === "/dashboard" || path === "/") return "dashboard-page";
+    if (path === "/dashboard") return "dashboard-page";
+    if (path === "/") return "landing-page";
     return "default-page";
   };
 
@@ -28,7 +30,7 @@ function App() {
 
   return (
     <div className={`app-container ${getPageClass()}`}>
-      <Header userId={userId} setUserId={setUserId} setUser={setUser} />
+      {userId && <Header userId={userId} setUserId={setUserId} setUser={setUser} />}
       <main className="main-content">
         <Routes>
           <Route
@@ -37,9 +39,7 @@ function App() {
               userId ? (
                 <Navigate to="/dashboard" />
               ) : (
-                <div className="login-message">
-                  <p>Please log in to view your dashboard.</p>
-                </div>
+                <Landing />
               )
             }
           />
