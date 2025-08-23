@@ -2,7 +2,7 @@ import './SearchBar.css';
 import { useState, useEffect, useRef } from 'react';
 import { getAllUniqueArtists, getAllUniqueAlbums } from '../getListeningData';
 
-function SearchBar({ searchQuery, setSearchQuery, userId, searchType = "artist", onAlbumSelect = null }) {
+function SearchBar({ searchQuery, setSearchQuery, userId, searchType = "artist", onAlbumSelect = null, onArtistSelect = null }) {
     const [inputValue, setInputValue] = useState(searchQuery);
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -42,10 +42,27 @@ function SearchBar({ searchQuery, setSearchQuery, userId, searchType = "artist",
             return;
         }
 
-        const filtered = allItems.filter(item => {
+        const normalizedInput = inputValue.toLowerCase();
+
+        // Score function: lower is better
+        function getScore(item) {
             const searchField = searchType === "artist" ? item.artist : item.album;
-            return searchField.toLowerCase().includes(inputValue.toLowerCase());
-        }).slice(0, 10);
+            const field = searchField.toLowerCase();
+
+            if (field === normalizedInput) return 0; // exact match
+            if (field.startsWith(normalizedInput)) return 1; // starts with
+            if (field.includes(normalizedInput)) return 2; // contains
+            return 3; // not matched (shouldn't appear)
+        }
+
+        const filtered = allItems
+            .filter(item => {
+                const searchField = searchType === "artist" ? item.artist : item.album;
+                return searchField.toLowerCase().includes(normalizedInput);
+            })
+            .map(item => ({ ...item, _score: getScore(item) }))
+            .sort((a, b) => a._score - b._score || a.artist?.localeCompare(b.artist || "") || a.album?.localeCompare(b.album || ""))
+            .slice(0, 10);
 
         setSuggestions(filtered);
         setShowSuggestions(filtered.length > 0);
@@ -76,11 +93,13 @@ function SearchBar({ searchQuery, setSearchQuery, userId, searchType = "artist",
     const handleSuggestionClick = (suggestion) => {
         if (searchType === "artist") {
             setSearchQuery(suggestion.artist);
-            setInputValue(suggestion.artist);
+            if (onArtistSelect) {
+                onArtistSelect(suggestion);
+            }
         } else if (searchType === "album" && onAlbumSelect) {
             onAlbumSelect(suggestion);
-            setInputValue("");  // Clear the search bar after selection
         }
+        setInputValue(""); // Always clear the search bar after selection
         setShowSuggestions(false);
     };
 

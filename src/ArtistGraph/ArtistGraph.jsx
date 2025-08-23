@@ -1,7 +1,6 @@
 import './ArtistGraph.css';
 import GraphCard from "../GraphCard/GraphCard";
 import SearchBar from "../Components/SearchBar";
-import { getArtistID } from "../getListeningData";
 import { useState, useEffect } from "react";
 
 function ArtistGraph({ userId }) {
@@ -12,36 +11,15 @@ function ArtistGraph({ userId }) {
   const [artists, setArtists] = useState([]); // Array of artist names
   const [artistIds, setArtistIds] = useState([]); // Array of artist IDs
 
-  // This effect runs when searchQuery changes (when user presses Enter)
-  useEffect(() => {
-    async function fetchArtistData() {
-      if (searchQuery && searchQuery.trim()) {
-        console.log("Fetching artist data for", searchQuery);
-        
-        try {
-          const { artist_id: fetchedArtistId, artist: fetchedArtist } = await getArtistID(userId, searchQuery);
-          
-          console.log("Fetched Artist:", fetchedArtist);
-          console.log("Artist ID:", fetchedArtistId);
-          
-          // Only add the artist if it's not already in our list
-          if (fetchedArtistId && !artistIds.includes(fetchedArtistId)) {
-            setArtists(prevArtists => [...prevArtists, fetchedArtist]);
-            setArtistIds(prevIds => [...prevIds, fetchedArtistId]);
-            
-            // Clear search input after adding artist
-            setSearchQuery("");
-          } else {
-            console.log("Artist already in the list or not found");
-          }
-        } catch (error) {
-          console.error("Error fetching artist:", error);
-        }
-      }
+
+  // Instant add artist tag when selected from SearchBar
+  const handleArtistSelect = (artistObj) => {
+    if (artistObj && artistObj.artist_id && !artistIds.includes(artistObj.artist_id)) {
+      setArtists(prevArtists => [...prevArtists, artistObj.artist]);
+      setArtistIds(prevIds => [...prevIds, artistObj.artist_id]);
+      setSearchQuery("");
     }
-    
-    fetchArtistData();
-  }, [searchQuery, userId, artistIds]); // Depend on searchQuery to fetch data when Enter is pressed
+  };
 
   // Function to remove an artist from the list
   const removeArtist = (index) => {
@@ -59,7 +37,7 @@ function ArtistGraph({ userId }) {
   return (
     <div>
       <div className='search-container'>
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} userId={userId} />
+        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} userId={userId} onArtistSelect={handleArtistSelect} />
       </div>
       
       {/* Display selected artists */}
