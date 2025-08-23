@@ -77,7 +77,7 @@ function GraphCard({ title, userId, dataType=null, artistId=null, artistName=nul
             const name = artistNames[i] || `Artist ${i+1}`;
             
             console.log(`Fetching data for ${name} (${id})`);
-            const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, id);
+            const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, id, 800);
             
             // Process this artist's data
             const artistData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, name);
@@ -101,12 +101,12 @@ function GraphCard({ title, userId, dataType=null, artistId=null, artistName=nul
         // Case 2: Single artist (using artistId)
         else if (dataType === "artist" && artistId) {
           console.log("Fetching listening data for artist", artistId);
-          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, artistId);
+          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, artistId, 1000);
           processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, artistName);
         }
         // Case 3: Default total listening data
         else {
-          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate);
+          const { rawData } = await getListeningData(userId, dateRange.startDate, dateRange.endDate, null, 1500);
           processedData = chartListeningData(rawData, dateRange.startDate, dateRange.endDate, "Minutes Listened", pointImage);
         }
         
