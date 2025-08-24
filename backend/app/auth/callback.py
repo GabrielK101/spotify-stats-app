@@ -1,5 +1,6 @@
 import requests, datetime, os, jwt
 from fastapi import Request, HTTPException, APIRouter
+from fastapi.responses import RedirectResponse
 from google.cloud import firestore
 
 router = APIRouter()
@@ -20,7 +21,7 @@ def get_firestore_client():
 @router.get("/callback")
 def callback(code: str):
     db = get_firestore_client()  # Create client here instead of module level
-    redirect_uri = f"{os.getenv('BACKEND_BASE_URL')}/auth/callback"
+    redirect_uri = f"{os.getenv('BACKEND_BASE_URL', 'http://localhost:8000')}/auth/callback"
 
     token_res = requests.post(
         "https://accounts.spotify.com/api/token",
@@ -73,5 +74,7 @@ def callback(code: str):
         algorithm="HS256",
     )
 
-    return {"user_id": user_id, "display_name": display_name, "profile_pic_url": profile_pic_url, "token": session}
-
+    # Redirect to frontend callback with token and user_id
+    frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
+    redirect_to = f"{frontend_url}/callback?token={session}&user_id={user_id}"
+    return RedirectResponse(redirect_to)

@@ -1,12 +1,8 @@
 import "./LoginButton.css";
 
 const LoginButton = () => {
-  const BACKEND = "http://localhost:8000";
-  
   const handleLogin = async () => {
-    const res = await fetch(`${BACKEND}/auth/login`);
-    const { authorize_url } = await res.json();
-    window.location.href = authorize_url;
+    window.location.href = "http://localhost:8000/auth/login";
   };
 
   return (
