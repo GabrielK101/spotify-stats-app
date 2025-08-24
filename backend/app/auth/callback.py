@@ -4,11 +4,22 @@ from google.cloud import firestore
 
 router = APIRouter()
 
-db = firestore.Client()
 JWT_SECRET = os.getenv("JWT_SECRET")
+
+def get_firestore_client():
+    """Initialize Firestore client with proper credentials"""
+    # Set credentials path if not already set
+    if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+        # Get path relative to this file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        service_account_path = os.path.join(current_dir, '..', '..', 'serviceAccountKey.json')
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = service_account_path
+    
+    return firestore.Client()
 
 @router.get("/callback")
 def callback(code: str):
+    db = get_firestore_client()  # Create client here instead of module level
     redirect_uri = f"{os.getenv('BACKEND_BASE_URL')}/auth/callback"
 
     token_res = requests.post(
@@ -63,3 +74,4 @@ def callback(code: str):
     )
 
     return {"user_id": user_id, "display_name": display_name, "profile_pic_url": profile_pic_url, "token": session}
+

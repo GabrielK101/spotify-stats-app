@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes_auth import router as auth_router
+from routes_auth import router as auth_router
 import os
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "serviceAccountKey.json"
 
 app = FastAPI()
 app.add_middleware(

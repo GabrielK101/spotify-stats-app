@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Request
-from app.auth.login import spotify_login, spotify_callback  
+from auth.login import login
+from auth.callback import callback
 
 router = APIRouter(prefix="/auth")
 
-router.get("/login")(spotify_login)
-router.get("/callback")(spotify_callback)
+router.get("/login")(login)
+router.get("/callback")(callback)
