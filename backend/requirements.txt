@@ -10,9 +10,13 @@ pyjwt>=2.8.0
 
 # Google Cloud Firestore
 google-cloud-firestore>=2.13.0
+google-auth>=2.23.0
 
 # Environment variables
 python-dotenv>=1.0.0
+
+# Additional dependencies for Google Cloud authentication
+google-oauth2-tool>=0.0.3
 
 # Development dependencies (optional)
 pytest>=7.4.0
