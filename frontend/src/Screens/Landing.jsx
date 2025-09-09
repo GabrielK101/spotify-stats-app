@@ -34,8 +34,8 @@ const Landing = () => {
             </div>
             
             <div className="card-content">
-              <LoginButton />
-              
+              <LoginButton buttonText={"Connect your Spotify account"}/>
+
               <p className="login-footer">
                 Start exploring your music journey today
               </p>

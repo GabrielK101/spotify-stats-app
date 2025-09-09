@@ -1,12 +1,12 @@
 import "./LoginButton.css";
 
-const LoginButton = () => {
+const LoginButton = ({ buttonText }) => {
   const handleLogin = async () => {
     window.location.href = "http://localhost:8000/auth/login";
   };
 
   return (
-    <button className="login-btn" onClick={handleLogin}>Login</button>
+    <button className="login-btn" onClick={handleLogin}>{buttonText}</button>
   );
 };
 
