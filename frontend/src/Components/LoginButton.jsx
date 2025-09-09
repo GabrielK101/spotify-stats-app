@@ -2,7 +2,7 @@ import "./LoginButton.css";
 
 const LoginButton = ({ buttonText }) => {
   const handleLogin = async () => {
-    window.location.href = "http://localhost:8000/auth/login";
+    window.location.href = "https://spotify-stats-app-production.up.railway.app/auth/login";
   };
 
   return (
