@@ -7,6 +7,7 @@ router = APIRouter()
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 
+# TODO: move to standard module and remove weak pathing
 def get_firestore_client():
     """Initialize Firestore client with proper credentials"""
     # Set credentials path if not already set
@@ -23,18 +24,25 @@ def callback(code: str):
     db = get_firestore_client()  # Create client here instead of module level
     redirect_uri = f"{os.getenv('BACKEND_BASE_URL', 'http://localhost:8000')}/auth/callback"
 
-    token_res = requests.post(
-        "https://accounts.spotify.com/api/token",
-        data={
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": redirect_uri,
-            "client_id": os.getenv("SPOTIFY_CLIENT_ID"),
-            "client_secret": os.getenv("SPOTIFY_CLIENT_SECRET"),
-        },
-        timeout=15,
-    )
-    token_data = token_res.json()
+    try:
+        token_res = requests.post(
+            "https://accounts.spotify.com/api/token",
+            data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": redirect_uri,
+                "client_id": os.getenv("SPOTIFY_CLIENT_ID"),
+                "client_secret": os.getenv("SPOTIFY_CLIENT_SECRET"),
+            },
+            timeout=15,
+        )
+        token_res.raise_for_status()  # Raises an HTTPError for bad responses
+        token_data = token_res.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(503, f"Failed to connect to Spotify token endpoint: {str(e)}")
+    except ValueError as e:  # JSON decode error
+        raise HTTPException(502, f"Invalid response from Spotify token endpoint: {str(e)}")
+    
     if "access_token" not in token_data:
         raise HTTPException(400, f"Token error: {token_data}")
 
@@ -43,11 +51,19 @@ def callback(code: str):
     expires_in = token_data.get("expires_in", 3600)
     expiry_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=expires_in)
 
-    me = requests.get(
-        "https://api.spotify.com/v1/me",
-        headers={"Authorization": f"Bearer {access_token}"},
-        timeout=15,
-    ).json()
+    try:
+        me_response = requests.get(
+            "https://api.spotify.com/v1/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=15,
+        )
+        me_response.raise_for_status()  # Raises an HTTPError for bad responses
+        me = me_response.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(503, f"Failed to fetch user profile from Spotify: {str(e)}")
+    except ValueError as e:  # JSON decode error
+        raise HTTPException(502, f"Invalid user profile response from Spotify: {str(e)}")
+    
     if "id" not in me:
         raise HTTPException(400, f"User error: {me}")
 
