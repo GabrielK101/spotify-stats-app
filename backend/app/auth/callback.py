@@ -1,7 +1,9 @@
 import requests, datetime, os, jwt
+import json
 from fastapi import Request, HTTPException, APIRouter
 from fastapi.responses import RedirectResponse
 from google.cloud import firestore
+from google.oauth2 import service_account
 
 router = APIRouter()
 
@@ -10,9 +12,21 @@ JWT_SECRET = os.getenv("JWT_SECRET")
 # TODO: move to standard module and remove weak pathing
 def get_firestore_client():
     """Initialize Firestore client with proper credentials"""
-    # Set credentials path if not already set
+    # Check if we have JSON credentials in environment (for Railway deployment)
+    credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    
+    if credentials_json:
+        try:
+            # Parse JSON credentials
+            credentials_info = json.loads(credentials_json)
+            credentials = service_account.Credentials.from_service_account_info(credentials_info)
+            return firestore.Client(credentials=credentials)
+        except (json.JSONDecodeError, Exception) as e:
+            print(f"Error parsing JSON credentials: {e}")
+            # Fall through to file-based method
+    
+    # Fallback to file-based credentials (for local development)
     if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-        # Get path relative to this file
         current_dir = os.path.dirname(os.path.abspath(__file__))
         service_account_path = os.path.join(current_dir, '..', '..', 'serviceAccountKey.json')
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = service_account_path
