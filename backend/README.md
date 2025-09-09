@@ -1,0 +1,16 @@
+Environment Variables:
+
+SPOTIFY_CLIENT_ID=51708b73fb5f4f78aa90ec2e5c7803ee
+SPOTIFY_CLIENT_SECRET=8351d40d8b8744189becd6881ba81f16
+BACKEND_BASE_URL=http://localhost:8000
+FRONTEND_BASE_URL=http://localhost:5173
+JWT_SECRET=d3cbc10b75bf6ae310c52d35aaf527cc5a80cc61e44d3f5ce44771fb356a956a
+
+
+To start up your FastAPI backend, you need to:
+
+Navigate to the backend directory:
+Activate your virtual environment:
+.venv\Scripts\Activate.ps1
+Start the FastAPI development server:
+fastapi dev app/main.py
