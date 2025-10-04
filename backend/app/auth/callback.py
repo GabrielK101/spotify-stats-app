@@ -65,7 +65,6 @@ def callback(code: str, db: Session = Depends(get_db)):
     profile_pic_url = (me.get("images") or [{}])[0].get("url")
 
     # Save to SQL database
-    # Save to SQL database
     user_data = {
         "user_id": user_id,
         "display_name": display_name,
