@@ -1,0 +1,30 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "spotify-ai-worker",
+	"main": "src/index.js",
+	"compatibility_date": "2025-10-04",
+	"observability": {
+		"enabled": true
+	},
+	"ai": {
+		"binding": "AI"
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "CHAT_MEMORY",
+				"class_name": "ChatMemory",
+				"script_name": "spotify-ai-worker"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_classes": ["ChatMemory"]
+		}
+	],
+	"vars": {
+		"RAILWAY_API_URL": "https://spotify-stats-app-production.up.railway.app"
+	}
+}
