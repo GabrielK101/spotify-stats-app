@@ -84,3 +84,33 @@ def manual_poll_all():
         "failed": sum(1 for r in results if not r["success"]),
         "results": results
     }
+
+@app.get("/api/user/{user_id}/recent-tracks")
+def get_recent_tracks_for_ai(user_id: str, limit: int = 20, db: Session = Depends(get_db)):
+    """Get recent tracks formatted for AI"""
+    history = DBService.get_user_listening_history(db, user_id, limit=limit)
+    
+    if not history:
+        return {"error": "No listening history found"}
+    
+    # Format for AI consumption
+    tracks = []
+    for h in history:
+        tracks.append({
+            "track": h.track_name,
+            "artist": h.artist_name,
+            "album": h.album_name,
+            "played_at": h.played_at.strftime("%Y-%m-%d %H:%M"),
+        })
+    
+    # Get user info
+    user = DBService.get_user(db, user_id)
+    
+    return {
+        "user": {
+            "id": user_id,
+            "name": user.display_name if user else "Unknown"
+        },
+        "recent_tracks": tracks,
+        "track_count": len(tracks)
+    }
