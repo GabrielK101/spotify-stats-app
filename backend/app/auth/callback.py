@@ -14,6 +14,7 @@ JWT_SECRET = os.getenv("JWT_SECRET")
 
 @router.get("/callback")
 def callback(code: str, db: Session = Depends(get_db)):
+    print(f"=== CALLBACK STARTED: Received code: {code[:20]}... ===")
     redirect_uri = f"{os.getenv('BACKEND_BASE_URL', 'http://localhost:8000')}/auth/callback"
 
     try:
@@ -64,6 +65,7 @@ def callback(code: str, db: Session = Depends(get_db)):
     profile_pic_url = (me.get("images") or [{}])[0].get("url")
 
     # Save to SQL database
+    # Save to SQL database
     user_data = {
         "user_id": user_id,
         "display_name": display_name,
@@ -72,7 +74,16 @@ def callback(code: str, db: Session = Depends(get_db)):
         "token_expiry": expiry_time,
         "profile_pic_url": profile_pic_url,
     }
-    DBService.upsert_user(db, user_data)
+    
+    print(f"Attempting to save user: {user_id}")
+    try:
+        DBService.upsert_user(db, user_data)
+        print(f"Successfully saved user: {user_id}")
+    except Exception as e:
+        print(f"Error saving user: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
     # Issue JWT for frontend → backend calls
     session = jwt.encode(
