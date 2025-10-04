@@ -69,14 +69,14 @@ def get_user_history(user_id: str, limit: int = 100, offset: int = 0, db: Sessio
 @app.post("/api/admin/poll/{user_id}")
 def manual_poll_user(user_id: str, db: Session = Depends(get_db)):
     """Manually trigger a poll for a specific user (for testing)"""
-    from services.spotify_poller import SpotifyPoller
+    from .services.spotify_poller import SpotifyPoller
     result = SpotifyPoller.poll_user(db, user_id)
     return result
 
 @app.post("/api/admin/poll-all")
 def manual_poll_all():
     """Manually trigger a poll for all users (for testing)"""
-    from services.spotify_poller import SpotifyPoller
+    from .services.spotify_poller import SpotifyPoller
     results = SpotifyPoller.poll_all_users()
     return {
         "total": len(results),

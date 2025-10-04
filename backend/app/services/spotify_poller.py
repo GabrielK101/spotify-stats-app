@@ -4,7 +4,7 @@ import datetime
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 from ..db.database import get_db_context
-from ..services.db_service import DBService
+from .db_service import DBService
 
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
