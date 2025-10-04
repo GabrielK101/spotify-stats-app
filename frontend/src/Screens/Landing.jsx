@@ -16,7 +16,7 @@ const Landing = () => {
             </div>
             
             <h1 className="hero-title">
-                Welcome to Audiolyse
+                Welcome to Spotilytics
             </h1>
             
             <p className="hero-description">
