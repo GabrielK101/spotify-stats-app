@@ -146,7 +146,7 @@ function buildContext(listeningData, conversationHistory) {
 	const systemPrompt = `You are a music insight assistant for ${listeningData.user.name}. 
 	Here are their ${listeningData.track_count} most recently played tracks:
 	${tracksList}
-	Provide personalized insights about their listening habits, music taste, and recommendations. Be conversational, insightful, and reference specific tracks they've listened to. Keep responses concise (2-3 paragraphs max).`;
+	Provide personalized insights about their listening habits, music taste, and recommendations. Highlight specific trends and information that they might be interested in or unaware of. Be conversational, insightful, and reference specific tracks they've listened to but ensure you do not just list them. Keep responses concise but engaging and insightful.`;
 
 	// Format conversation history for AI
 	const formattedHistory = conversationHistory.map(msg => ({
