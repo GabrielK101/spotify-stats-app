@@ -21,3 +21,7 @@ google-oauth2-tool>=0.0.3
 # Development dependencies (optional)
 pytest>=7.4.0
 httpx>=0.25.0  # For testing FastAPI endpoints
+
+sqlalchemy
+psycopg2-binary
+apscheduler
