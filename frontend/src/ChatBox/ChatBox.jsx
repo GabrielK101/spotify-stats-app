@@ -3,7 +3,9 @@ import { useState, useEffect, useRef } from "react";
 import { CiChat1 } from "react-icons/ci";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import { IoSend } from "react-icons/io5";
-import { MdOutlineReplay } from "react-icons/md";import "./ChatBox.css";
+import { MdOutlineReplay } from "react-icons/md";
+import ReactMarkdown from 'react-markdown';
+import "./ChatBox.css";
 
 
 const ChatBox = ({ userId, user }) => {
@@ -141,7 +143,27 @@ const ChatBox = ({ userId, user }) => {
               messages.map((message) => (
                 <div key={message.id} className={`message ${message.sender}`}>
                   <div className="message-content">
-                    {message.text}
+                    {message.sender === 'ai' ? (
+                      <ReactMarkdown
+                        components={{
+                          // Disable links for security
+                          a: ({ children }) => <span>{children}</span>,
+                          // Style headings appropriately for chat
+                          h1: ({ children }) => <strong>{children}</strong>,
+                          h2: ({ children }) => <strong>{children}</strong>,
+                          h3: ({ children }) => <strong>{children}</strong>,
+                          // Style lists
+                          ul: ({ children }) => <ul style={{ margin: '0.5rem 0', paddingLeft: '1rem' }}>{children}</ul>,
+                          ol: ({ children }) => <ol style={{ margin: '0.5rem 0', paddingLeft: '1rem' }}>{children}</ol>,
+                          // Style code blocks
+                          code: ({ children }) => <code style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.4rem', borderRadius: '3px' }}>{children}</code>,
+                        }}
+                      >
+                        {message.text}
+                      </ReactMarkdown>
+                    ) : (
+                      message.text
+                    )}
                   </div>
                 </div>
               ))

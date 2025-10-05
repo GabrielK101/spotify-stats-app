@@ -9,7 +9,6 @@
  */
 
 import { ChatMemory } from './memory';
-
 export { ChatMemory };
 
 export default {
@@ -47,15 +46,15 @@ export default {
 					});
 				}
 
-				// Fetch user's listening data from Railway
-				const listeningDataUrl = `${env.RAILWAY_API_URL}/api/user/${userId}/recent-tracks`;
-				const listeningResponse = await fetch(listeningDataUrl);
+				// Fetch all user's music data from Railway
+				const completeDataUrl = `${env.RAILWAY_API_URL}/api/user/${userId}/complete-data`;
+				const musicDataResponse = await fetch(completeDataUrl);
 
-				if (!listeningResponse.ok) {
-					throw new Error('Failed to fetch listening data');
+				if (!musicDataResponse.ok) {
+					throw new Error('Failed to fetch user music data');
 				}
 
-				const listeningData = await listeningResponse.json();
+				const musicData = await musicDataResponse.json();
 
 				// Get conversation history from Durable Object
 				const memoryId = env.CHAT_MEMORY.idFromName(userId);
@@ -66,7 +65,7 @@ export default {
 				const { history } = await historyResponse.json();
 
 				// Build context for AI
-				const context = buildContext(listeningData, history, userData);
+				const context = buildContext(musicData, history, userData, message);
 
 				// Call Llama via Workers AI
 				const aiResponse = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
@@ -101,8 +100,9 @@ export default {
 				return new Response(JSON.stringify({
 					response: assistantMessage,
 					context: {
-						tracksAnalyzed: listeningData.tracks?.length || 0,
-						userId: listeningData.user_id
+						tracksAnalyzed: musicData.recent_tracks?.length || 0,
+						userId: userId,
+						totalTracksInHistory: musicData.user?.total_tracks_in_history || 0
 					}
 				}), {
 					headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -137,33 +137,82 @@ export default {
 	}
 };
 
-function buildContext(listeningData, conversationHistory, userData = {}) {
-	// Format listening data
-	const tracks = listeningData.recent_tracks || [];
-	const tracksList = tracks
-		.map((t, i) => `${i + 1}. "${t.track}" by ${t.artist} (${t.played_at})`)
-		.join('\n');
-
-	const userName = userData.display_name || 'user';
-	const hasListeningData = tracks.length > 0;
-
-	let systemPrompt;
-
-
-	systemPrompt = `You are a personalized music insight assistant. You're chatting with ${userName}. 
-		Here are their ${tracks.length} most recently played tracks:
-		${tracksList}
+function buildContext(musicData, conversationHistory, userData = {}, userMessage = '') {
+	const userName = userData.display_name || musicData.user?.name || 'user';
+	
+	// Build comprehensive data sections
+	let dataSection = '';
+	
+	// Recent tracks
+	if (musicData.recent_tracks?.length > 0) {
+		const tracks = musicData.recent_tracks.slice(0, 20); // Show top 20 for context
+		const tracksList = tracks
+			.map((t, i) => `${i + 1}. *"${t.track}"* by **${t.artist}** (${t.played_at})`)
+			.join('\n');
+		dataSection += `\n🎵 **Recent Tracks** (${musicData.recent_tracks.length} total):\n${tracksList}\n`;
+	}
+	
+	// Top artists
+	if (musicData.top_artists?.length > 0) {
+		const artists = musicData.top_artists.slice(0, 10);
+		const artistsList = artists
+			.map((a, i) => `${i + 1}. **${a.name}** (${a.play_count} plays)`)
+			.join('\n');
+		dataSection += `\n🎤 **Top Artists**:\n${artistsList}\n`;
+	}
+	
+	// Top albums
+	if (musicData.top_albums?.length > 0) {
+		const albums = musicData.top_albums.slice(0, 8);
+		const albumsList = albums
+			.map((a, i) => `${i + 1}. ${a.album_artist} (${a.play_count} plays)`)
+			.join('\n');
+		dataSection += `\n💿 **Top Albums**:\n${albumsList}\n`;
+	}
+	
+	// Listening statistics
+	if (musicData.listening_stats) {
+		const stats = musicData.listening_stats;
+		dataSection += `\n📊 **Listening Statistics**:\n`;
 		
-		Your goal is to provide insightful, engaging, and actionable commentary about their listening habits. Analyze trends, patterns, and unique preferences, including genre shifts, favorite artists, moods, or repeated listening behaviors. Reference specific tracks naturally to illustrate insights, but do not just list them. Offer thoughtful recommendations — suggest tracks, artists, or playlists that align with their tastes or might pleasantly surprise them. Keep your responses conversational, concise, and engaging, as if you are a knowledgeable friend who deeply understands their music preferences. Strive to reveal patterns or observations they may not have noticed themselves, making the experience feel personalized and meaningful.
+		if (stats.week) {
+			dataSection += `**This Week:**\n`;
+			dataSection += `- ${stats.week.total_minutes} minutes (${stats.week.avg_daily_minutes}/day)\n`;
+			dataSection += `- ${stats.week.total_tracks} tracks, ${stats.week.unique_artists} unique artists\n`;
+		}
 		
-		IMPORTANT BOUNDARIES:
-		- ONLY respond to questions about music, artists, songs, albums, genres, listening habits, music recommendations, or music-related topics
-		- If asked about anything non-music related (weather, sports, general knowledge, personal advice, etc.), politely redirect: "I'm here to help with your music insights! Ask me about your listening habits, favorite artists, or let me recommend some tracks based on your taste."
-		- Stay focused on music analysis and recommendations at all times
-		- Never provide information outside the music domain
+		if (stats.month) {
+			dataSection += `**This Month:**\n`;
+			dataSection += `- ${stats.month.total_minutes} minutes (${stats.month.avg_daily_minutes}/day)\n`;
+			dataSection += `- ${stats.month.total_tracks} tracks, ${stats.month.unique_artists} unique artists\n`;
+		}
+		
+		if (stats.all_time) {
+			dataSection += `**All Time:**\n`;
+			dataSection += `- ${stats.all_time.total_minutes} total minutes\n`;
+			dataSection += `- ${stats.all_time.total_tracks} tracks, ${stats.all_time.unique_artists} unique artists\n`;
+			dataSection += `- Artist variety score: ${stats.all_time.artist_variety_score} (0-1 scale)\n`;
+		}
+	}
 
-		It is important to keep your messages short and to the point, ideally under 100 words, let a text message conversation flow naturally like talking to a friend. Avoid overly long explanations or excessive detail unless the user asks for more information.`;
-
+	const systemPrompt = `You are a personalized music insight assistant chatting with **${userName}**. You have access to their complete music listening data and should use it to provide deep, personalized insights.
+		${dataSection}
+		
+		🎯 **Your Role**: Provide insightful, engaging analysis of their listening habits. Look for patterns, trends, and unique preferences. Address them by name to make it personal. Reference specific tracks and artists naturally to illustrate insights.
+		
+		✨ **Guidelines**:
+		- **Keep responses concise** (under 150 words) - like texting a music-savvy friend
+		- **Use markdown formatting**: **Bold** for artists/albums, *Italic* for tracks, bullet points for lists
+		- **Add relevant music emojis** but don't overuse them (🎵🎤💿📊🎸🎹🥁🎺)
+		- **Be conversational and insightful** - reveal patterns they might not have noticed
+		- **Offer personalized recommendations** based on their actual listening data
+		- **Reference specific data** - mention play counts, time periods, or trends you see
+		
+		🚫 **Important Boundaries**:
+		- ONLY discuss music, artists, songs, albums, genres, listening habits, and music recommendations
+		- If asked about non-music topics, politely redirect: "I'm here for your music insights! Ask me about your listening habits or let me recommend tracks based on your taste."
+		
+		Remember: You have their complete listening history, so use specific data points to make your insights meaningful and personal!`;
 
 	// Format conversation history for AI
 	const formattedHistory = conversationHistory.map(msg => ({

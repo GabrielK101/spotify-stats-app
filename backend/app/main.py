@@ -66,6 +66,54 @@ def get_user_history(user_id: str, limit: int = 100, offset: int = 0, db: Sessio
         "offset": offset,
     }
 
+@app.get("/api/user/{user_id}/recent-tracks")
+def get_recent_tracks(user_id: str, limit: int = 20, db: Session = Depends(get_db)):
+    """Get recent tracks for AI analysis"""
+    history = DBService.get_user_listening_history(db, user_id, limit, 0)
+    user = DBService.get_user(db, user_id)
+    
+    return {
+        "user": {
+            "id": user.user_id if user else user_id,
+            "name": user.display_name if user else "Unknown"
+        },
+        "recent_tracks": [
+            {
+                "track": h.track_name,
+                "artist": h.artist_name,
+                "album": h.album_name,
+                "played_at": h.played_at.strftime('%Y-%m-%d %H:%M'),
+            }
+            for h in history
+        ],
+        "track_count": len(history)
+    }
+
+@app.get("/api/user/{user_id}/top-artists")
+def get_top_artists(user_id: str, limit: int = 10, timeframe: str = "month", db: Session = Depends(get_db)):
+    """Get top artists for a user"""
+    # This would need to be implemented in DBService
+    # For now, return a placeholder
+    return {
+        "user_id": user_id,
+        "timeframe": timeframe,
+        "top_artists": []  # TODO: Implement top artists logic
+    }
+
+@app.get("/api/user/{user_id}/listening-stats")
+def get_listening_stats(user_id: str, timeframe: str = "week", db: Session = Depends(get_db)):
+    """Get listening statistics for a user"""
+    # This would need to be implemented in DBService
+    # For now, return a placeholder
+    return {
+        "user_id": user_id,
+        "timeframe": timeframe,
+        "total_minutes": 0,  # TODO: Calculate from listening history
+        "total_tracks": 0,
+        "unique_artists": 0,
+        "avg_daily_minutes": 0
+    }
+
 @app.post("/api/admin/poll/{user_id}")
 def manual_poll_user(user_id: str, db: Session = Depends(get_db)):
     """Manually trigger a poll for a specific user (for testing)"""
@@ -85,32 +133,97 @@ def manual_poll_all():
         "results": results
     }
 
-@app.get("/api/user/{user_id}/recent-tracks")
-def get_recent_tracks_for_ai(user_id: str, limit: int = 50, db: Session = Depends(get_db)):
-    """Get recent tracks formatted for AI"""
-    history = DBService.get_user_listening_history(db, user_id, limit=limit)
+@app.get("/api/user/{user_id}/complete-data")
+def get_complete_user_data(user_id: str, db: Session = Depends(get_db)):
+    """Get all user music data for AI context"""
+    from collections import Counter
+    from datetime import datetime, timedelta
     
-    if not history:
+    # Get user info
+    user = DBService.get_user(db, user_id)
+    if not user:
+        return {"error": "User not found"}
+    
+    # Get all listening history (we'll limit and process it)
+    all_history = DBService.get_user_listening_history(db, user_id, limit=500)
+    
+    if not all_history:
         return {"error": "No listening history found"}
     
-    # Format for AI consumption
-    tracks = []
-    for h in history:
-        tracks.append({
+    # Recent tracks (last 50)
+    recent_tracks = []
+    for h in all_history[:50]:
+        recent_tracks.append({
             "track": h.track_name,
             "artist": h.artist_name,
             "album": h.album_name,
             "played_at": h.played_at.strftime("%Y-%m-%d %H:%M"),
         })
     
-    # Get user info
-    user = DBService.get_user(db, user_id)
+    # Calculate top artists
+    artist_counts = Counter([h.artist_name for h in all_history])
+    top_artists = [
+        {"name": artist, "play_count": count}
+        for artist, count in artist_counts.most_common(20)
+    ]
+    
+    # Calculate listening statistics
+    now = datetime.utcnow()
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+    
+    # Week stats
+    week_tracks = [h for h in all_history if h.played_at >= week_ago]
+    week_minutes = sum(h.duration_ms for h in week_tracks if h.duration_ms) / (1000 * 60)
+    week_unique_artists = len(set(h.artist_name for h in week_tracks))
+    
+    # Month stats
+    month_tracks = [h for h in all_history if h.played_at >= month_ago]
+    month_minutes = sum(h.duration_ms for h in month_tracks if h.duration_ms) / (1000 * 60)
+    month_unique_artists = len(set(h.artist_name for h in month_tracks))
+    
+    # All time stats
+    total_minutes = sum(h.duration_ms for h in all_history if h.duration_ms) / (1000 * 60)
+    total_unique_artists = len(set(h.artist_name for h in all_history))
+    
+    # Genre analysis (simplified - based on artist diversity)
+    recent_artists = [h.artist_name for h in all_history[:100]]
+    artist_variety = len(set(recent_artists)) / len(recent_artists) if recent_artists else 0
+    
+    # Top albums
+    album_counts = Counter([f"{h.album_name} by {h.artist_name}" for h in all_history if h.album_name])
+    top_albums = [
+        {"album_artist": album, "play_count": count}
+        for album, count in album_counts.most_common(10)
+    ]
     
     return {
         "user": {
             "id": user_id,
-            "name": user.display_name if user else "Unknown"
+            "name": user.display_name,
+            "total_tracks_in_history": len(all_history)
         },
-        "recent_tracks": tracks,
-        "track_count": len(tracks)
+        "recent_tracks": recent_tracks,
+        "top_artists": top_artists,
+        "top_albums": top_albums,
+        "listening_stats": {
+            "week": {
+                "total_minutes": round(week_minutes, 1),
+                "total_tracks": len(week_tracks),
+                "unique_artists": week_unique_artists,
+                "avg_daily_minutes": round(week_minutes / 7, 1)
+            },
+            "month": {
+                "total_minutes": round(month_minutes, 1),
+                "total_tracks": len(month_tracks),
+                "unique_artists": month_unique_artists,
+                "avg_daily_minutes": round(month_minutes / 30, 1)
+            },
+            "all_time": {
+                "total_minutes": round(total_minutes, 1),
+                "total_tracks": len(all_history),
+                "unique_artists": total_unique_artists,
+                "artist_variety_score": round(artist_variety, 2)
+            }
+        }
     }
