@@ -145,7 +145,7 @@ def get_complete_user_data(user_id: str, db: Session = Depends(get_db)):
         return {"error": "User not found"}
     
     # Get all listening history (we'll limit and process it)
-    all_history = DBService.get_user_listening_history(db, user_id, limit=500)
+    all_history = DBService.get_user_listening_history(db, user_id, limit=1000)
     
     if not all_history:
         return {"error": "No listening history found"}
@@ -240,4 +240,41 @@ def get_complete_user_data(user_id: str, db: Session = Depends(get_db)):
                 "artist_variety_score": round(artist_variety, 2)
             }
         }
+    }
+
+@app.get("/api/user/{user_id}/search")
+def search_user_history(user_id: str, q: str, limit: int = 25, db: Session = Depends(get_db)):
+    """Search user's listening history"""
+    from sqlalchemy import or_
+    from .db.models import ListeningHistory
+
+    history = db.query(ListeningHistory)\
+        .filter(
+            ListeningHistory.user_id == user_id,
+            or_(
+                ListeningHistory.track_name.ilike(f'%{q}%'),
+                ListeningHistory.artist_name.ilike(f'%{q}%')
+            )
+        )\
+        .order_by(ListeningHistory.played_at.desc())\
+        .limit(limit)\
+        .all()
+
+    return {
+        "user_id": user_id,
+        "query": q,
+        "matches": [
+            {
+                "track_id": h.track_id,
+                "track_name": h.track_name,
+                "artist_name": h.artist_name,
+                "artist_id": h.artist_id,
+                "album_name": h.album_name,
+                "played_at": h.played_at.isoformat(),
+                "duration_ms": h.duration_ms,
+                "image_url": h.image_url,
+            }
+            for h in history
+        ],
+        "count": len(history)
     }
