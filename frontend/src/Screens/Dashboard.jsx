@@ -14,7 +14,7 @@ function Dashboard({ userId, user }){
             </div>
             <GraphCard title="Weekly Listening" userId={userId} dataType="weekly" pointImage={user && user.profile_pic_url} />
             <AristGraph userId={userId} />
-            <ChatBox />
+            <ChatBox userId={userId} user={user} />
         </>
     );
 }

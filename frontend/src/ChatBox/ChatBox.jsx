@@ -3,10 +3,10 @@ import { useState, useEffect, useRef } from "react";
 import { CiChat1 } from "react-icons/ci";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import { IoSend } from "react-icons/io5";
-import "./ChatBox.css";
+import { MdOutlineReplay } from "react-icons/md";import "./ChatBox.css";
 
 
-const ChatBox = () => {
+const ChatBox = ({ userId, user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -21,6 +21,28 @@ const ChatBox = () => {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  const clearChat = async () => {
+    try {
+      const response = await fetch("http://localhost:8787/clear", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: userId
+        }),
+      });
+
+      if (response.ok) {
+        setMessages([]);
+      } else {
+        console.error("Failed to clear chat history on server");
+      }
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+    }
+  };
+
   const sendMessage = async () => {
     if (!inputValue.trim()) return;
 
@@ -32,6 +54,7 @@ const ChatBox = () => {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const messageToSend = inputValue; // Store the message before clearing
     setInputValue("");
     setIsLoading(true);
 
@@ -42,8 +65,12 @@ const ChatBox = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: "test_user", // replace with logged-in user later
-          message: inputValue,
+          userId: userId,
+          message: messageToSend,
+          userData: {
+            display_name: user?.display_name || 'there',
+            profile_pic_url: user?.profile_pic_url
+          }
         }),
       });
 
@@ -95,14 +122,21 @@ const ChatBox = () => {
         <div className="chat-box">
           <div className="chat-header">
             <h2>Chat with THE AI OF DOOM</h2>
-            <button className="close-btn" onClick={() => setIsOpen(false)}>
-              <IoMdCloseCircleOutline />
-            </button>
+            <div className="header-buttons">
+              <button className="clear-btn" onClick={clearChat} title="Clear chat">
+                <MdOutlineReplay />
+              </button>
+              <button className="close-btn" onClick={() => setIsOpen(false)} title="Close chat">
+                <IoMdCloseCircleOutline />
+              </button>
+            </div>
           </div>
 
           <div className="chat-messages">
             {messages.length === 0 ? (
-              <p className="welcome-message">How can I help you with your music insights today?</p>
+              <p className="welcome-message">
+                Hey {user?.display_name || 'there'}! 👋 I can help you discover insights about your music listening habits. What would you like to know?
+              </p>
             ) : (
               messages.map((message) => (
                 <div key={message.id} className={`message ${message.sender}`}>

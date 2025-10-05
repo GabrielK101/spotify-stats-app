@@ -45,6 +45,9 @@
   padding: 1rem;
   border-bottom: 1px solid #333;
   position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .chat-header h2 {
@@ -53,10 +56,13 @@
   color: white;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .close-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
   background: none;
   border: none;
   color: #888;
@@ -68,6 +74,22 @@
 
 .close-btn:hover {
   color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  border-radius: 50%;
+}
+
+.clear-btn:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .chat-messages {
