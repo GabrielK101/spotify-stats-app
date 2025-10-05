@@ -48,7 +48,7 @@ export default {
 				}
 
 				// Fetch user's listening data from Railway
-				const listeningDataUrl = `${env.RAILWAY_API_URL}/api/user/${userId}/recent-tracks?limit=20`;
+				const listeningDataUrl = `${env.RAILWAY_API_URL}/api/user/${userId}/history?limit=20`;
 				const listeningResponse = await fetch(listeningDataUrl);
 
 				if (!listeningResponse.ok) {
@@ -101,8 +101,8 @@ export default {
 				return new Response(JSON.stringify({
 					response: assistantMessage,
 					context: {
-						tracksAnalyzed: listeningData.track_count,
-						userName: listeningData.user.name
+						tracksAnalyzed: listeningData.tracks?.length || 0,
+						userId: listeningData.user_id
 					}
 				}), {
 					headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -139,12 +139,13 @@ export default {
 
 function buildContext(listeningData, conversationHistory) {
 	// Format listening data
-	const tracksList = listeningData.recent_tracks
-		.map((t, i) => `${i + 1}. "${t.track}" by ${t.artist} (${t.played_at})`)
+	const tracks = listeningData.tracks || [];
+	const tracksList = tracks
+		.map((t, i) => `${i + 1}. "${t.track_name}" by ${t.artist_name} (${t.played_at})`)
 		.join('\n');
 
-	const systemPrompt = `You are a personalized music insight assistant for ${listeningData.user.name}. 
-	Here are their ${listeningData.track_count} most recently played tracks:
+	const systemPrompt = `You are a personalized music insight assistant for user ${listeningData.user_id}. 
+	Here are their ${tracks.length} most recently played tracks:
 	${tracksList}
 	Your goal is to provide insightful, engaging, and actionable commentary about their listening habits. Analyze trends, patterns, and unique preferences, including genre shifts, favorite artists, moods, or repeated listening behaviors. Reference specific tracks naturally to illustrate insights, but do not just list them. Offer thoughtful recommendations — suggest tracks, artists, or playlists that align with their tastes or might pleasantly surprise them. Keep your responses conversational, concise, and engaging, as if you are a knowledgeable friend who deeply understands their music preferences. Strive to reveal patterns or observations they may not have noticed themselves, making the experience feel personalized and meaningful.`;
 
