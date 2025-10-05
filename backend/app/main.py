@@ -168,17 +168,31 @@ def get_complete_user_data(user_id: str, db: Session = Depends(get_db)):
     ]
     
     # Calculate listening statistics
-    now = datetime.utcnow()
+    from datetime import datetime, timedelta, timezone
+    
+    now = datetime.now(timezone.utc)
     week_ago = now - timedelta(days=7)
     month_ago = now - timedelta(days=30)
     
-    # Week stats
-    week_tracks = [h for h in all_history if h.played_at >= week_ago]
+    # Week stats - handle timezone-aware comparisons
+    week_tracks = []
+    month_tracks = []
+    
+    for h in all_history:
+        # Ensure played_at is timezone-aware for comparison
+        played_at = h.played_at
+        if played_at.tzinfo is None:
+            # If naive, assume UTC
+            played_at = played_at.replace(tzinfo=timezone.utc)
+        
+        if played_at >= week_ago:
+            week_tracks.append(h)
+        if played_at >= month_ago:
+            month_tracks.append(h)
     week_minutes = sum(h.duration_ms for h in week_tracks if h.duration_ms) / (1000 * 60)
     week_unique_artists = len(set(h.artist_name for h in week_tracks))
     
     # Month stats
-    month_tracks = [h for h in all_history if h.played_at >= month_ago]
     month_minutes = sum(h.duration_ms for h in month_tracks if h.duration_ms) / (1000 * 60)
     month_unique_artists = len(set(h.artist_name for h in month_tracks))
     
