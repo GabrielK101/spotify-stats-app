@@ -86,7 +86,7 @@ def manual_poll_all():
     }
 
 @app.get("/api/user/{user_id}/recent-tracks")
-def get_recent_tracks_for_ai(user_id: str, limit: int = 20, db: Session = Depends(get_db)):
+def get_recent_tracks_for_ai(user_id: str, limit: int = 50, db: Session = Depends(get_db)):
     """Get recent tracks formatted for AI"""
     history = DBService.get_user_listening_history(db, user_id, limit=limit)
     
