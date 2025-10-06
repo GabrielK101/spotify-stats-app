@@ -2,7 +2,7 @@ import "./LoginButton.css";
 
 const LoginButton = ({ buttonText }) => {
   const handleLogin = async () => {
-    window.location.href = "https://spotify-stats-app-production.up.railway.app/auth/login";
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
   };
 
   return (
