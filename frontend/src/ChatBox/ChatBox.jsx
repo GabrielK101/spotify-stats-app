@@ -61,7 +61,7 @@ const ChatBox = ({ userId, user }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8787/chat", {
+      const response = await fetch("https://spotify-ai-worker.gabekanjama.workers.dev/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
