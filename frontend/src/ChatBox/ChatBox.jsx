@@ -25,7 +25,7 @@ const ChatBox = ({ userId, user }) => {
 
   const clearChat = async () => {
     try {
-      const response = await fetch("http://localhost:8787/clear", {
+      const response = await fetch(`${import.meta.env.VITE_AI_WORKER_URL}/clear`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ const ChatBox = ({ userId, user }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("https://spotify-ai-worker.gabekanjama.workers.dev/chat", {
+      const response = await fetch(`${import.meta.env.VITE_AI_WORKER_URL}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
